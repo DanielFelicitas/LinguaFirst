@@ -28,11 +28,19 @@ function parseCorsOrigins() {
 const clientOrigins = parseCorsOrigins();
 
 /** Allow *.vercel.app when true/1, or when unset on Vercel (Preview deploys use a different hostname than Production). Opt out: ALLOW_VERCEL_PREVIEWS=false */
+function isVercelRuntime() {
+  return Boolean(
+    (process.env.VERCEL != null && String(process.env.VERCEL) !== "") ||
+    (process.env.VERCEL_ENV != null && String(process.env.VERCEL_ENV) !== "")
+  );
+}
+
 function allowVercelPreviewOrigins() {
   const v = String(process.env.ALLOW_VERCEL_PREVIEWS ?? "").trim().toLowerCase();
   if (v === "false" || v === "0" || v === "no" || v === "off") return false;
   if (v === "true" || v === "1" || v === "yes" || v === "on") return true;
-  return process.env.VERCEL === "1";
+  // Default on Vercel (VERCEL or VERCEL_ENV is set in serverless — not only VERCEL=== "1")
+  return isVercelRuntime();
 }
 
 const allowVercelPreviews = allowVercelPreviewOrigins();
@@ -46,21 +54,43 @@ function isVercelPreviewOrigin(origin) {
   }
 }
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (!clientOrigins || clientOrigins.length === 0) return callback(null, true);
-      const normalized = origin.replace(/\/+$/, "");
-      if (clientOrigins.includes(normalized)) return callback(null, true);
-      if (allowVercelPreviews && isVercelPreviewOrigin(origin)) return callback(null, true);
-      return callback(null, false);
-    },
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-  })
-);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (!clientOrigins || clientOrigins.length === 0) return callback(null, true);
+    const normalized = origin.replace(/\/+$/, "");
+    if (clientOrigins.includes(normalized)) return callback(null, true);
+    if (allowVercelPreviews && isVercelPreviewOrigin(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+};
+
+app.use(cors(corsOptions));
+
+/**
+ * cors@2 calls `next()` when origin is denied, so OPTIONS can fall through without ACAO headers.
+ * Answer Preview (*.vercel.app) preflights here when allowed by allowVercelPreviews.
+ */
+app.use((req, res, next) => {
+  if (req.method !== "OPTIONS" || res.headersSent) return next();
+  const origin = req.headers.origin;
+  if (!origin || !allowVercelPreviews || !isVercelPreviewOrigin(origin)) return next();
+  const o = origin.replace(/\/+$/, "");
+  res.setHeader("Access-Control-Allow-Origin", o);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+  const reqHdr = req.headers["access-control-request-headers"];
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    reqHdr || "Content-Type, Authorization"
+  );
+  res.setHeader("Vary", reqHdr ? "Origin, Access-Control-Request-Headers" : "Origin");
+  return res.status(204).end();
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 /** Liveness — no MongoDB (Vercel / uptime checks). Must stay above connectDB middleware. */
@@ -73,6 +103,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use(async (req, res, next) => {
+  if (req.method === "OPTIONS") return next();
   try {
     await connectDB();
   } catch (err) {

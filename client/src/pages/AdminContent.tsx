@@ -115,6 +115,7 @@ export function AdminContent() {
   const [gDescribePrompt, setGDescribePrompt] = useState<string[]>([""]);
   const [gDescribeOpts, setGDescribeOpts] = useState<string[][]>([["", "", "", ""]]);
   const [gDescribeCorrect, setGDescribeCorrect] = useState<number[]>([0]);
+  const [describeUploading, setDescribeUploading] = useState<number | null>(null);
   const [gChallengePrompts, setGChallengePrompts] = useState<string[]>([""]);
   const [gChallengeOpts, setGChallengeOpts] = useState<string[][]>([["", "", "", ""]]);
   const [gChallengeCorrect, setGChallengeCorrect] = useState<number[]>([0]);
@@ -1822,16 +1823,49 @@ export function AdminContent() {
                   {gDescribePrompt.map((prompt, i) => (
                     <div key={i} className="rounded-lg border border-slate-200 bg-white p-3">
                       <p className="text-xs font-medium text-slate-500">Item {i + 1}</p>
-                      <input
-                        value={gDescribeImage[i] || ""}
-                        onChange={(e) => {
-                          const next = [...gDescribeImage];
-                          next[i] = e.target.value;
-                          setGDescribeImage(next);
-                        }}
-                        placeholder="Image URL or data URL (optional)"
-                        className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-sm"
-                      />
+                      <label className="mt-2 block text-xs font-medium text-slate-600">
+                        Image (Cloudinary URL or upload)
+                      </label>
+                      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                          value={gDescribeImage[i] || ""}
+                          onChange={(e) => {
+                            const next = [...gDescribeImage];
+                            next[i] = e.target.value;
+                            setGDescribeImage(next);
+                          }}
+                          placeholder="https://… (paste URL after upload)"
+                          className="min-w-0 flex-1 rounded border border-slate-200 px-2 py-1 text-sm"
+                        />
+                        <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-medium text-teal-900 hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-50">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            disabled={describeUploading === i}
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!f) return;
+                              setErr(null);
+                              setMsg(null);
+                              setDescribeUploading(i);
+                              try {
+                                const { url } = await api.admin.uploadImage(f);
+                                const next = [...gDescribeImage];
+                                next[i] = url;
+                                setGDescribeImage(next);
+                                setMsg("Image uploaded to Cloudinary.");
+                              } catch (ex) {
+                                setErr(ex instanceof Error ? ex.message : "Upload failed");
+                              } finally {
+                                setDescribeUploading(null);
+                              }
+                            }}
+                          />
+                          {describeUploading === i ? "Uploading…" : "Upload"}
+                        </label>
+                      </div>
                       <input
                         value={prompt}
                         onChange={(e) => {

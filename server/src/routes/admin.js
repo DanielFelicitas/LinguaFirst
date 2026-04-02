@@ -1,13 +1,20 @@
 const express = require("express");
+const multer = require("multer");
 const Module = require("../models/Module");
 const Lesson = require("../models/Lesson");
 const Quiz = require("../models/Quiz");
 const VocabularyWord = require("../models/VocabularyWord");
 const Game = require("../models/Game");
 const { auth, requireAdmin } = require("../middleware/auth");
+const { cloudinary, ensureConfigured } = require("../lib/cloudinary");
 
 const router = express.Router();
 router.use(auth(true), requireAdmin);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 const MAX_SIMPLE_SLIDES = 40;
 const GAME_TYPES = [
@@ -450,6 +457,33 @@ router.delete("/games", async (_req, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+
+/** Image upload for admin (e.g. Describe game). Stores in Cloudinary under CLOUDINARY_FOLDER. */
+router.post("/upload", (req, res, next) => {
+  upload.single("file")(req, res, async (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "File too large (max 5MB)" });
+      }
+      return next(err);
+    }
+    try {
+      ensureConfigured();
+      if (!req.file?.buffer) {
+        return res.status(400).json({ message: "file is required (multipart field name: file)" });
+      }
+      const folder = (process.env.CLOUDINARY_FOLDER || "linguafirst").replace(/^\/+|\/+$/g, "");
+      const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const result = await cloudinary.uploader.upload(dataUrl, {
+        folder,
+        resource_type: "auto",
+      });
+      res.json({ url: result.secure_url });
+    } catch (e) {
+      next(e);
+    }
+  });
 });
 
 module.exports = router;

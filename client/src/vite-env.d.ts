@@ -1,7 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string;
+  /** Set on Vercel when the API is a separate deployment, e.g. `https://your-api.vercel.app` */
+  readonly VITE_API_URL?: string;
 }
 
 interface ImportMeta {

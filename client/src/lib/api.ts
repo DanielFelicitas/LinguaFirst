@@ -1,4 +1,5 @@
-const base = import.meta.env.VITE_API_URL ?? "";
+/** Production API base (no trailing slash). Empty = same origin / Vite dev proxy. */
+const base = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
 export function getToken(): string | null {
   return localStorage.getItem("lf_token");
@@ -157,6 +158,26 @@ export const api = {
       }),
     deleteVocab: (id: string) =>
       request<{ ok: boolean }>(`/api/admin/vocabulary/${encodeURIComponent(id)}`, { method: "DELETE" }),
+
+    /** Multipart upload to Cloudinary (admin). */
+    uploadImage: async (file: File): Promise<{ url: string }> => {
+      const form = new FormData();
+      form.append("file", file);
+      const headers = new Headers();
+      const t = getToken();
+      if (t) headers.set("Authorization", `Bearer ${t}`);
+      const res = await fetch(`${base}/api/admin/upload`, { method: "POST", body: form, headers });
+      const text = await res.text();
+      const data = text ? (JSON.parse(text) as unknown) : null;
+      if (!res.ok) {
+        const msg =
+          data && typeof data === "object" && data !== null && "message" in data
+            ? String((data as { message: string }).message)
+            : res.statusText;
+        throw new Error(msg || "Upload failed");
+      }
+      return data as { url: string };
+    },
   },
 };
 

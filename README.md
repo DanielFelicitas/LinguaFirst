@@ -25,11 +25,11 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 2. Environment variables (minimum):
    - `MONGODB_URI`
    - `JWT_SECRET`
-   - **`FRONTEND_URL`** — for the first deploy you can set `http://localhost:5173` **or** leave CORS open until step 5 (see note below).
-   - Optional: `CLOUDINARY_*` if you use uploads.
+   - **`FRONTEND_URLS`** — comma-separated origins, e.g. `http://localhost:5173,https://your-app.vercel.app` (same pattern as the Inventory Management System). You can use **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** instead or together; all are merged.
+   - Optional: `ALLOW_VERCEL_PREVIEWS=true` for `*.vercel.app` previews; `CLOUDINARY_*` if you use uploads.
 3. Deploy. Copy the **production URL** of the API (e.g. `https://your-api.vercel.app`).
 
-**CORS note:** If you set **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** to a production URL before the front-end exists, the first deploy may block browser calls until step 5. If you omit both, CORS allows all origins (dev-friendly); set a real production origin before going live.
+**CORS note:** If you lock CORS to specific origins but omit your production front-end URL, the browser will block calls until you add it (step 5). If you omit **`FRONTEND_URLS`**, **`FRONTEND_URL`**, and **`CLIENT_ORIGIN`** entirely, CORS allows all origins (dev-friendly); set real origins before going live.
 
 ### 4. Deploy the **front-end** (second Vercel project for `client/`)
 
@@ -42,7 +42,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 ### 5. Final sync (critical)
 
 1. Open the **server** project on Vercel → **Settings → Environment Variables**.
-2. Set **`FRONTEND_URL`** (and/or **`CLIENT_ORIGIN`**) to your **front-end** production URL, e.g. `https://your-app.vercel.app` (comma-separated if you have multiple).
+2. Set **`FRONTEND_URLS`** to include your **front-end** production URL (comma-separated with local if you want), e.g. `http://localhost:5173,https://your-app.vercel.app`, or set **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** — all merge into one CORS list.
 3. **Redeploy** the **server** so CORS picks up the real front-end origin.
 
 ### Variable map (cheat sheet)
@@ -50,7 +50,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 | Where | Variable | Value |
 | ----- | -------- | ----- |
 | **Server (Vercel)** | `MONGODB_URI`, `JWT_SECRET`, Cloudinary vars | Secrets / Atlas |
-| **Server (Vercel)** | **`FRONTEND_URL`** or **`CLIENT_ORIGIN`** | Your **front-end** URL(s) — CORS |
+| **Server (Vercel)** | **`FRONTEND_URLS`** and/or **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** | Your **front-end** URL(s) — CORS (comma-separated) |
 | **Client (Vercel)** | **`VITE_API_URL`** | Your **API** URL — fetch calls |
 
 ### If the two deployments “work” but not together
@@ -58,7 +58,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 | Symptom | What to fix |
 | ------- | ----------- |
 | Network tab shows requests to **`https://your-frontend.vercel.app/api/...`** (404) | **`VITE_API_URL`** is missing or not applied. Set it on the **client** project to the **API** origin only (e.g. `https://your-api.vercel.app`, not `/api`). **Redeploy the client** — Vite reads env at **build** time. |
-| Console: CORS / blocked by policy | On the **server** project, **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** must include your **exact** front-end origin (`https://…vercel.app`). **Redeploy the server** after changing. For preview URLs, set **`ALLOW_VERCEL_PREVIEWS=1`** on the server. |
+| Console: CORS / blocked by policy | On the **server** project, **`FRONTEND_URLS`** (or **`FRONTEND_URL`**) must include your **exact** front-end origin (`https://…vercel.app`). **Redeploy the server** after changing. For preview URLs, set **`ALLOW_VERCEL_PREVIEWS=true`** (or **`1`**) on the server. |
 | Accidentally set `VITE_API_URL` to `…vercel.app/api` | Use the API **origin** only; the app already adds `/api` to paths. |
 
 ---

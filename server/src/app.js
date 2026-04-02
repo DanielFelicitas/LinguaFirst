@@ -10,9 +10,11 @@ const analyticsRoutes = require("./routes/analytics");
 
 const app = express();
 
-/** CORS: merge CLIENT_ORIGIN and FRONTEND_URL (common in MERN + Vercel tutorials — same purpose). */
+/** CORS: merge FRONTEND_URLS, FRONTEND_URL, CLIENT_ORIGIN (same pattern as Inventory Management System). */
 function parseCorsOrigins() {
-  const raw = [process.env.CLIENT_ORIGIN, process.env.FRONTEND_URL].filter(Boolean).join(",");
+  const raw = [process.env.FRONTEND_URLS, process.env.FRONTEND_URL, process.env.CLIENT_ORIGIN]
+    .filter(Boolean)
+    .join(",");
   if (!raw.trim()) return null;
   const set = new Set();
   raw
@@ -24,7 +26,9 @@ function parseCorsOrigins() {
 }
 
 const clientOrigins = parseCorsOrigins();
-const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS === "1" || process.env.ALLOW_VERCEL_PREVIEWS === "true";
+const allowVercelPreviews =
+  String(process.env.ALLOW_VERCEL_PREVIEWS || "").toLowerCase() === "true" ||
+  process.env.ALLOW_VERCEL_PREVIEWS === "1";
 
 app.use(
   cors({

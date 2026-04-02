@@ -40,6 +40,14 @@ npm run seed
 2. Add the same environment variables as in `.env` (including Cloudinary).  
 3. `server/vercel.json` + `server/api/index.js` expose the Express app as a serverless function.
 
+### Troubleshooting
+
+- **`503` with `Database unavailable`** — Add **`MONGODB_URI`** in Vercel → **Settings → Environment Variables** (Production + Preview), then **Redeploy**. In Atlas → **Network Access**, allow **`0.0.0.0/0`** so Vercel can connect.
+
+- **`GET /` and `GET /api/health`** — Respond **without** MongoDB (used for uptime). If those work but other routes return 503, the problem is only MongoDB config.
+
+- **`Cannot GET /`** — Open **`/api/health`** or **`/`** on your API URL; you should get JSON. If you still see plain “Cannot GET”, confirm **Root Directory** is **`server`** and redeploy.
+
 ## Accounts
 
 The **first registered user** becomes **admin** and can use `/admin/content` and admin API routes.

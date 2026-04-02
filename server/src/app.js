@@ -37,6 +37,15 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 
+/** Liveness — no MongoDB (Vercel / uptime checks). Must stay above connectDB middleware. */
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "linguafirst-api", health: "/api/health" });
+});
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, service: "linguafirst-api" });
+});
+
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -49,10 +58,6 @@ app.use(async (req, res, next) => {
     return res.status(503).json({ message });
   }
   next();
-});
-
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "linguafirst" });
 });
 
 app.use("/api/auth", authRoutes);

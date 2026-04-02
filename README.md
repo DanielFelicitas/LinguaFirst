@@ -26,7 +26,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
    - `MONGODB_URI`
    - `JWT_SECRET`
    - **`FRONTEND_URLS`** — comma-separated origins, e.g. `http://localhost:5173,https://your-app.vercel.app` (same pattern as the Inventory Management System). You can use **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** instead or together; all are merged.
-   - Optional: `ALLOW_VERCEL_PREVIEWS=true` for `*.vercel.app` previews; `CLOUDINARY_*` if you use uploads.
+   - Optional: `CLOUDINARY_*` if you use uploads. Preview frontends (`*.vercel.app`) are allowed **by default** on Vercel; set `ALLOW_VERCEL_PREVIEWS=false` on the API to disable.
 3. Deploy. Copy the **production URL** of the API (e.g. `https://your-api.vercel.app`).
 
 **CORS note:** If you lock CORS to specific origins but omit your production front-end URL, the browser will block calls until you add it (step 5). If you omit **`FRONTEND_URLS`**, **`FRONTEND_URL`**, and **`CLIENT_ORIGIN`** entirely, CORS allows all origins (dev-friendly); set real origins before going live.

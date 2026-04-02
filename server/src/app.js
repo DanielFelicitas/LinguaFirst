@@ -26,9 +26,25 @@ function parseCorsOrigins() {
 }
 
 const clientOrigins = parseCorsOrigins();
-const allowVercelPreviews =
-  String(process.env.ALLOW_VERCEL_PREVIEWS || "").toLowerCase() === "true" ||
-  process.env.ALLOW_VERCEL_PREVIEWS === "1";
+
+/** Allow *.vercel.app when true/1, or when unset on Vercel (Preview deploys use a different hostname than Production). Opt out: ALLOW_VERCEL_PREVIEWS=false */
+function allowVercelPreviewOrigins() {
+  const v = String(process.env.ALLOW_VERCEL_PREVIEWS ?? "").trim().toLowerCase();
+  if (v === "false" || v === "0" || v === "no" || v === "off") return false;
+  if (v === "true" || v === "1" || v === "yes" || v === "on") return true;
+  return process.env.VERCEL === "1";
+}
+
+const allowVercelPreviews = allowVercelPreviewOrigins();
+
+function isVercelPreviewOrigin(origin) {
+  try {
+    const host = new URL(origin).hostname.toLowerCase();
+    return host === "vercel.app" || host.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
 
 app.use(
   cors({
@@ -37,16 +53,12 @@ app.use(
       if (!clientOrigins || clientOrigins.length === 0) return callback(null, true);
       const normalized = origin.replace(/\/+$/, "");
       if (clientOrigins.includes(normalized)) return callback(null, true);
-      if (allowVercelPreviews) {
-        try {
-          if (/\.vercel\.app$/i.test(new URL(origin).hostname)) return callback(null, true);
-        } catch {
-          /* ignore */
-        }
-      }
+      if (allowVercelPreviews && isVercelPreviewOrigin(origin)) return callback(null, true);
       return callback(null, false);
     },
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   })
 );
 app.use(express.json({ limit: "1mb" }));

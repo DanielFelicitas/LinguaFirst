@@ -3,5 +3,8 @@ client/dist/
 server/.env
 client/.env
 .env
+.env.*
+!.env.example
 *.log
 .DS_Store
+.vercel

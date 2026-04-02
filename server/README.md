@@ -13,7 +13,7 @@ Copy `.env.example` to `.env` and set:
 
 - **`MONGODB_URI`** — MongoDB connection string  
 - **`JWT_SECRET`** — long random string  
-- **`CLIENT_ORIGIN`** — comma-separated browser origins allowed (CORS), e.g. `http://localhost:5173`  
+- **`FRONTEND_URL`** and/or **`CLIENT_ORIGIN`** — comma-separated browser origins (CORS). Same idea as MERN tutorials: use **`FRONTEND_URL`** for your deployed React URL; **`CLIENT_ORIGIN`** is merged with it if you set both.  
 - **`CLOUDINARY_CLOUD_NAME`**, **`CLOUDINARY_API_KEY`**, **`CLOUDINARY_API_SECRET`** — from [Cloudinary](https://cloudinary.com/) dashboard  
 - **`CLOUDINARY_FOLDER`** — optional; default `linguafirst` (images are stored under this folder in Cloudinary)  
 - Optional: **`ALLOW_VERCEL_PREVIEWS=1`** — allow any `*.vercel.app` origin (preview URLs)

@@ -1,0 +1,455 @@
+const express = require("express");
+const Module = require("../models/Module");
+const Lesson = require("../models/Lesson");
+const Quiz = require("../models/Quiz");
+const VocabularyWord = require("../models/VocabularyWord");
+const Game = require("../models/Game");
+const { auth, requireAdmin } = require("../middleware/auth");
+
+const router = express.Router();
+router.use(auth(true), requireAdmin);
+
+const MAX_SIMPLE_SLIDES = 40;
+const GAME_TYPES = [
+  "match_pairs",
+  "word_scramble",
+  "sentence_correct",
+  "describe_see",
+  "language_challenge",
+  "word_search",
+];
+
+function normalizeSimpleSlidesPayload(body, lessonType) {
+  if (lessonType !== "simple") return [];
+  const { simpleSlides, content } = body || {};
+  if (Array.isArray(simpleSlides) && simpleSlides.length > 0) {
+    return simpleSlides.slice(0, MAX_SIMPLE_SLIDES).map((s) => String(s ?? ""));
+  }
+  return [String(content ?? "")];
+}
+
+const MODULE_TYPES = new Set(["grammar", "vocabulary", "conversation", "culture", "general"]);
+
+router.post("/modules", async (req, res, next) => {
+  try {
+    const { title, description, order, slug, moduleType } = req.body || {};
+    if (!title || !slug) return res.status(400).json({ message: "title and slug required" });
+    const mt = MODULE_TYPES.has(moduleType) ? moduleType : "general";
+    const mod = await Module.create({
+      title,
+      description: description || "",
+      order: order ?? 0,
+      slug: String(slug).toLowerCase().replace(/\s+/g, "-"),
+      moduleType: mt,
+    });
+    res.status(201).json({ module: mod });
+  } catch (e) {
+    if (e.code === 11000) return res.status(409).json({ message: "Slug already exists" });
+    next(e);
+  }
+});
+
+router.patch("/modules/:id", async (req, res, next) => {
+  try {
+    const { title, description, order, slug, moduleType } = req.body || {};
+    const updates = {
+      ...(title !== undefined && { title }),
+      ...(description !== undefined && { description }),
+      ...(order !== undefined && { order }),
+      ...(slug !== undefined && { slug: String(slug).toLowerCase().replace(/\s+/g, "-") }),
+    };
+    if (moduleType !== undefined) {
+      updates.moduleType = MODULE_TYPES.has(moduleType) ? moduleType : "general";
+    }
+    const mod = await Module.findByIdAndUpdate(req.params.id, updates, { new: true });
+    if (!mod) return res.status(404).json({ message: "Module not found" });
+    res.json({ module: mod });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/modules/:id", async (req, res, next) => {
+  try {
+    await Lesson.deleteMany({ moduleId: req.params.id });
+    await Quiz.deleteMany({ moduleId: req.params.id });
+    const r = await Module.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Module not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/lessons", async (req, res, next) => {
+  try {
+    const { moduleId, title, content, languagePages, lessonType, order, slug } = req.body || {};
+    if (!moduleId || !title || !slug) {
+      return res.status(400).json({ message: "moduleId, title, slug required" });
+    }
+    const lt = lessonType === "simple" ? "simple" : "flipbook";
+    const simpleSlides = normalizeSimpleSlidesPayload(req.body, lt);
+    const lesson = await Lesson.create({
+      moduleId,
+      title,
+      content: lt === "simple" ? simpleSlides[0] || "" : content || "",
+      lessonType: lt,
+      simpleSlides: lt === "simple" ? simpleSlides : [],
+      ...(lt === "flipbook" && Array.isArray(languagePages) && { languagePages }),
+      ...(lt === "simple" && { languagePages: [] }),
+      order: order ?? 0,
+      slug: String(slug).toLowerCase().replace(/\s+/g, "-"),
+    });
+    res.status(201).json({ lesson });
+  } catch (e) {
+    if (e.code === 11000) return res.status(409).json({ message: "Slug unique per module" });
+    next(e);
+  }
+});
+
+router.patch("/lessons/:id", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const { title, content, languagePages, lessonType, order, slug, moduleId } = body;
+    const existing = await Lesson.findById(req.params.id).lean();
+    if (!existing) return res.status(404).json({ message: "Lesson not found" });
+
+    if (lessonType === undefined) {
+      return res.status(400).json({ message: "lessonType required" });
+    }
+    const lt = lessonType === "simple" ? "simple" : "flipbook";
+
+    const patch = {
+      ...(moduleId !== undefined && { moduleId }),
+      ...(title !== undefined && { title }),
+      ...(order !== undefined && { order }),
+      ...(slug !== undefined && { slug: String(slug).toLowerCase().replace(/\s+/g, "-") }),
+      lessonType: lt,
+    };
+
+    if (lt === "simple") {
+      const slides = normalizeSimpleSlidesPayload(body, "simple");
+      patch.content = slides[0] || "";
+      patch.simpleSlides = slides;
+      patch.languagePages = [];
+    } else {
+      patch.simpleSlides = [];
+      patch.languagePages = Array.isArray(languagePages) ? languagePages : [];
+      patch.content = content || "";
+    }
+
+    const lesson = await Lesson.findByIdAndUpdate(req.params.id, patch, { new: true });
+    if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    res.json({ lesson });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/lessons/:id", async (req, res, next) => {
+  try {
+    const r = await Lesson.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Lesson not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/quizzes", async (req, res, next) => {
+  try {
+    const { title, moduleId, questions, quizType } = req.body || {};
+    if (!title || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ message: "title and questions[] required" });
+    }
+    const qt = quizType === "true_false" ? "true_false" : "multiple_choice";
+    for (const q of questions) {
+      if (!q.prompt || !Array.isArray(q.options) || q.options.length < 2) {
+        return res.status(400).json({ message: "Each question needs prompt and at least 2 options" });
+      }
+      if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+        return res.status(400).json({ message: "Each question needs valid correctIndex" });
+      }
+      if (qt === "true_false" && q.options.length !== 2) {
+        return res.status(400).json({ message: "True/false quizzes need exactly 2 options per question" });
+      }
+    }
+    const quiz = await Quiz.create({
+      title,
+      moduleId: moduleId || undefined,
+      quizType: qt,
+      questions,
+    });
+    res.status(201).json({ quiz });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch("/quizzes/:id", async (req, res, next) => {
+  try {
+    const { title, moduleId, questions, quizType } = req.body || {};
+    const quiz = await Quiz.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...(title !== undefined && { title }),
+        ...(moduleId !== undefined && { moduleId }),
+        ...(questions !== undefined && { questions }),
+        ...(quizType !== undefined && {
+          quizType: quizType === "true_false" ? "true_false" : "multiple_choice",
+        }),
+      },
+      { new: true }
+    );
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    res.json({ quiz });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/quizzes/:id", async (req, res, next) => {
+  try {
+    const r = await Quiz.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Quiz not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/vocabulary", async (req, res, next) => {
+  try {
+    const { bikol, english, example, tags } = req.body || {};
+    if (!bikol || !english) return res.status(400).json({ message: "bikol and english required" });
+    const word = await VocabularyWord.create({
+      bikol,
+      english,
+      example: example || "",
+      tags: Array.isArray(tags) ? tags : [],
+    });
+    res.status(201).json({ word });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch("/vocabulary/:id", async (req, res, next) => {
+  try {
+    const { bikol, english, example, tags } = req.body || {};
+    const word = await VocabularyWord.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...(bikol !== undefined && { bikol }),
+        ...(english !== undefined && { english }),
+        ...(example !== undefined && { example }),
+        ...(tags !== undefined && { tags }),
+      },
+      { new: true }
+    );
+    if (!word) return res.status(404).json({ message: "Word not found" });
+    res.json({ word });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/vocabulary/:id", async (req, res, next) => {
+  try {
+    const r = await VocabularyWord.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Word not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/games", async (_req, res, next) => {
+  try {
+    const games = await Game.find().sort({ order: 1, title: 1 }).lean();
+    res.json({ games });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/games", async (req, res, next) => {
+  try {
+    const { title, description, order, gameType, config, published } = req.body || {};
+    if (!title || !gameType) {
+      return res.status(400).json({ message: "title and gameType required" });
+    }
+    if (!GAME_TYPES.includes(gameType)) {
+      return res.status(400).json({ message: "invalid gameType" });
+    }
+    if (gameType === "language_challenge") {
+      const questions = config && Array.isArray(config.questions) ? config.questions : [];
+      if (questions.length === 0) {
+        return res.status(400).json({ message: "language challenge needs at least one question" });
+      }
+      for (const q of questions) {
+        if (!q || !q.prompt || !Array.isArray(q.options) || q.options.length < 2) {
+          return res.status(400).json({ message: "each challenge question needs prompt and >=2 options" });
+        }
+        if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+          return res.status(400).json({ message: "each challenge question needs a valid correctIndex" });
+        }
+      }
+    }
+    if (gameType === "sentence_correct") {
+      const items = config && Array.isArray(config.items) ? config.items : [];
+      if (items.length === 0) return res.status(400).json({ message: "sentence game needs at least one item" });
+      for (const it of items) {
+        if (!it || !String(it.sentence || "").trim()) {
+          return res.status(400).json({ message: "each sentence item needs a sentence" });
+        }
+        if (typeof it.correct !== "boolean") {
+          return res.status(400).json({ message: "each sentence item needs correct: true/false" });
+        }
+      }
+    }
+    if (gameType === "describe_see") {
+      const items = config && Array.isArray(config.items) ? config.items : [];
+      if (items.length === 0) return res.status(400).json({ message: "describe game needs at least one item" });
+      for (const it of items) {
+        const options = Array.isArray(it?.options) ? it.options : [];
+        if (!it || options.length < 2) {
+          return res.status(400).json({ message: "each describe item needs >=2 options" });
+        }
+        if (typeof it.correctIndex !== "number" || it.correctIndex < 0 || it.correctIndex >= options.length) {
+          return res.status(400).json({ message: "each describe item needs a valid correctIndex" });
+        }
+        if (!String(it.imageDataUrl || "").trim() && !String(it.prompt || "").trim()) {
+          return res.status(400).json({ message: "each describe item needs imageDataUrl or prompt" });
+        }
+      }
+    }
+    if (gameType === "word_scramble") {
+      const mode = config?.scrambleMode === "custom" ? "custom" : "vocabulary";
+      if (mode === "custom") {
+        const puzzles = Array.isArray(config?.scramblePuzzles) ? config.scramblePuzzles : [];
+        if (puzzles.length === 0) {
+          return res.status(400).json({ message: "custom scramble needs at least one puzzle" });
+        }
+        for (const p of puzzles) {
+          if (!p || !String(p.letters || "").trim() || !String(p.answer || "").trim()) {
+            return res.status(400).json({ message: "each custom scramble puzzle needs letters and answer" });
+          }
+        }
+      }
+    }
+    const game = await Game.create({
+      title,
+      description: description || "",
+      order: order ?? 0,
+      gameType,
+      config: config && typeof config === "object" ? config : {},
+      published: published !== false,
+    });
+    res.status(201).json({ game });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch("/games/:id", async (req, res, next) => {
+  try {
+    const { title, description, order, gameType, config, published } = req.body || {};
+    if (gameType !== undefined && !GAME_TYPES.includes(gameType)) {
+      return res.status(400).json({ message: "invalid gameType" });
+    }
+    if (gameType === "language_challenge" || (gameType === undefined && config?.questions)) {
+      const questions = config && Array.isArray(config.questions) ? config.questions : [];
+      if (questions.length === 0) {
+        return res.status(400).json({ message: "language challenge needs at least one question" });
+      }
+      for (const q of questions) {
+        if (!q || !q.prompt || !Array.isArray(q.options) || q.options.length < 2) {
+          return res.status(400).json({ message: "each challenge question needs prompt and >=2 options" });
+        }
+        if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+          return res.status(400).json({ message: "each challenge question needs a valid correctIndex" });
+        }
+      }
+    }
+    if (gameType === "sentence_correct" || (gameType === undefined && Array.isArray(config?.items) && config?.items?.[0]?.sentence)) {
+      const items = config && Array.isArray(config.items) ? config.items : [];
+      if (items.length === 0) return res.status(400).json({ message: "sentence game needs at least one item" });
+      for (const it of items) {
+        if (!it || !String(it.sentence || "").trim()) {
+          return res.status(400).json({ message: "each sentence item needs a sentence" });
+        }
+        if (typeof it.correct !== "boolean") {
+          return res.status(400).json({ message: "each sentence item needs correct: true/false" });
+        }
+      }
+    }
+    if (gameType === "describe_see" || (gameType === undefined && Array.isArray(config?.items) && (config?.items?.[0]?.options || config?.items?.[0]?.imageDataUrl))) {
+      const items = config && Array.isArray(config.items) ? config.items : [];
+      if (items.length === 0) return res.status(400).json({ message: "describe game needs at least one item" });
+      for (const it of items) {
+        const options = Array.isArray(it?.options) ? it.options : [];
+        if (!it || options.length < 2) {
+          return res.status(400).json({ message: "each describe item needs >=2 options" });
+        }
+        if (typeof it.correctIndex !== "number" || it.correctIndex < 0 || it.correctIndex >= options.length) {
+          return res.status(400).json({ message: "each describe item needs a valid correctIndex" });
+        }
+        if (!String(it.imageDataUrl || "").trim() && !String(it.prompt || "").trim()) {
+          return res.status(400).json({ message: "each describe item needs imageDataUrl or prompt" });
+        }
+      }
+    }
+    if (gameType === "word_scramble" || (gameType === undefined && config?.scrambleMode === "custom")) {
+      const mode = config?.scrambleMode === "custom" ? "custom" : "vocabulary";
+      if (mode === "custom") {
+        const puzzles = Array.isArray(config?.scramblePuzzles) ? config.scramblePuzzles : [];
+        if (puzzles.length === 0) {
+          return res.status(400).json({ message: "custom scramble needs at least one puzzle" });
+        }
+        for (const p of puzzles) {
+          if (!p || !String(p.letters || "").trim() || !String(p.answer || "").trim()) {
+            return res.status(400).json({ message: "each custom scramble puzzle needs letters and answer" });
+          }
+        }
+      }
+    }
+    const game = await Game.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(order !== undefined && { order }),
+        ...(gameType !== undefined && { gameType }),
+        ...(config !== undefined && { config }),
+        ...(published !== undefined && { published: !!published }),
+      },
+      { new: true }
+    );
+    if (!game) return res.status(404).json({ message: "Game not found" });
+    res.json({ game });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/games/:id", async (req, res, next) => {
+  try {
+    const r = await Game.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Game not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/games", async (_req, res, next) => {
+  try {
+    await Game.deleteMany({});
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+module.exports = router;

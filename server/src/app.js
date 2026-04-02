@@ -17,7 +17,7 @@ function parseCorsOrigins() {
   const set = new Set();
   raw
     .split(",")
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/\/+$/, ""))
     .filter(Boolean)
     .forEach((o) => set.add(o));
   return set.size ? Array.from(set) : null;
@@ -31,7 +31,8 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       if (!clientOrigins || clientOrigins.length === 0) return callback(null, true);
-      if (clientOrigins.includes(origin)) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, "");
+      if (clientOrigins.includes(normalized)) return callback(null, true);
       if (allowVercelPreviews) {
         try {
           if (/\.vercel\.app$/i.test(new URL(origin).hostname)) return callback(null, true);

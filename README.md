@@ -53,6 +53,14 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 | **Server (Vercel)** | **`FRONTEND_URL`** or **`CLIENT_ORIGIN`** | Your **front-end** URL(s) — CORS |
 | **Client (Vercel)** | **`VITE_API_URL`** | Your **API** URL — fetch calls |
 
+### If the two deployments “work” but not together
+
+| Symptom | What to fix |
+| ------- | ----------- |
+| Network tab shows requests to **`https://your-frontend.vercel.app/api/...`** (404) | **`VITE_API_URL`** is missing or not applied. Set it on the **client** project to the **API** origin only (e.g. `https://your-api.vercel.app`, not `/api`). **Redeploy the client** — Vite reads env at **build** time. |
+| Console: CORS / blocked by policy | On the **server** project, **`FRONTEND_URL`** / **`CLIENT_ORIGIN`** must include your **exact** front-end origin (`https://…vercel.app`). **Redeploy the server** after changing. For preview URLs, set **`ALLOW_VERCEL_PREVIEWS=1`** on the server. |
+| Accidentally set `VITE_API_URL` to `…vercel.app/api` | Use the API **origin** only; the app already adds `/api` to paths. |
+
 ---
 
 More detail: **`client/README.md`** and **`server/README.md`**.

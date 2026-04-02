@@ -1,5 +1,21 @@
-/** Production API base (no trailing slash). Empty = same origin / Vite dev proxy. */
-const base = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+/**
+ * API origin for fetch (no trailing slash, no `/api` suffix — paths already include `/api/...`).
+ * Empty in dev = Vite proxies `/api` → local server.
+ * In production builds, empty = browser calls the **frontend** host → `/api` 404 unless you set `VITE_API_URL` and redeploy.
+ */
+function getApiBase(): string {
+  let raw = (import.meta.env.VITE_API_URL ?? "").trim();
+  raw = raw.replace(/\/+$/, "");
+  if (raw.endsWith("/api")) raw = raw.slice(0, -4).replace(/\/+$/, "");
+  if (import.meta.env.PROD && !raw && typeof window !== "undefined") {
+    console.error(
+      "[LinguaFiRST] Set VITE_API_URL in the frontend Vercel project to your API URL (e.g. https://your-api.vercel.app), no trailing slash. Redeploy after saving — Vite bakes this in at build time."
+    );
+  }
+  return raw;
+}
+
+const base = getApiBase();
 
 export function getToken(): string | null {
   return localStorage.getItem("lf_token");

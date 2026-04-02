@@ -14,8 +14,8 @@ Copy `.env.example` to `.env` and set:
 - **`MONGODB_URI`** — MongoDB connection string  
 - **`JWT_SECRET`** — long random string  
 - **`FRONTEND_URLS`** — comma-separated browser origins (CORS), e.g. `http://localhost:5173,https://your-app.vercel.app` (same pattern as Inventory Management System). **`FRONTEND_URL`** and **`CLIENT_ORIGIN`** are optional and merge into the same list.  
-- **`CLOUDINARY_CLOUD_NAME`**, **`CLOUDINARY_API_KEY`**, **`CLOUDINARY_API_SECRET`** — from [Cloudinary](https://cloudinary.com/) dashboard  
-- **`CLOUDINARY_FOLDER`** — optional; default `linguafirst` (images are stored under this folder in Cloudinary)  
+- **`CLOUDINARY_CLOUD_NAME`**, **`CLOUDINARY_API_KEY`**, **`CLOUDINARY_API_SECRET`** — use the same Cloudinary account as your Inventory Management System project (copy from that project’s Vercel env). Optional **`CLOUDINARY_URL`** is supported; if all three named vars are set, they override the URL line.  
+- **`CLOUDINARY_FOLDER`** — optional; default **`ims_profiles`** (same root folder convention as IMS; override if you want a subfolder).  
 - **`ALLOW_VERCEL_PREVIEWS`** — optional. On **Vercel**, any **`*.vercel.app`** origin is allowed **by default** so Preview deployments (e.g. `your-app-xyz.vercel.app`) can call the API while **`FRONTEND_URLS`** lists only Production. Set **`false`** on the API project to allow **only** origins in **`FRONTEND_URLS`**. Locally, previews are off unless you set **`true`**.
 
 ```bash

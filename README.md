@@ -5,6 +5,10 @@
 | **`client/`** | Vite + React |
 | **`server/`** | Express API + MongoDB |
 
+## MERN split deploy on Vercel
+
+Aligned with **`Inventory-Management-System`** in the same workspace: **`FRONTEND_URLS`**, **`ALLOW_VERCEL_PREVIEWS`**, **`VITE_API_URL`**, and **Cloudinary** env names / precedence (trio over **`CLOUDINARY_URL`**). LinguaFiRST keeps **`serverless-http`** + **`api/index.js`** on the API; the IMS repo uses **`@vercel/node`** — both are valid on Vercel.
+
 ## MERN split deploy on Vercel (matches common tutorial flow)
 
 Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a template.
@@ -60,6 +64,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 | Network tab shows requests to **`https://your-frontend.vercel.app/api/...`** (404) | **`VITE_API_URL`** is missing or not applied. Set it on the **client** project to the **API** origin only (e.g. `https://your-api.vercel.app`, not `/api`). **Redeploy the client** — Vite reads env at **build** time. |
 | Console: CORS / blocked by policy | On the **server** project, **`FRONTEND_URLS`** (or **`FRONTEND_URL`**) must include your **exact** front-end origin (`https://…vercel.app`). **Redeploy the server** after changing. For preview URLs, set **`ALLOW_VERCEL_PREVIEWS=true`** (or **`1`**) on the server. |
 | Accidentally set `VITE_API_URL` to `…vercel.app/api` | Use the API **origin** only; the app already adds `/api` to paths. |
+| **`/assets/index-*.css` 404** (styles missing) | The SPA rewrite must run **after** static files. `client/vercel.json` uses `{ "handle": "filesystem" }` then `index.html` fallback. Redeploy the **client** after pulling. |
 
 ---
 

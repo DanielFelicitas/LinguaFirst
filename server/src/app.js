@@ -45,13 +45,10 @@ function allowVercelPreviewOrigins() {
 
 const allowVercelPreviews = allowVercelPreviewOrigins();
 
+/** Same rule as Inventory Management System: Origin ends with `.vercel.app` (after trimming a trailing slash). */
 function isVercelPreviewOrigin(origin) {
-  try {
-    const host = new URL(origin).hostname.toLowerCase();
-    return host === "vercel.app" || host.endsWith(".vercel.app");
-  } catch {
-    return false;
-  }
+  if (typeof origin !== "string") return false;
+  return origin.replace(/\/+$/, "").endsWith(".vercel.app");
 }
 
 const corsOptions = {

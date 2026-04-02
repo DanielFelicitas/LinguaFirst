@@ -473,7 +473,7 @@ router.post("/upload", (req, res, next) => {
       if (!req.file?.buffer) {
         return res.status(400).json({ message: "file is required (multipart field name: file)" });
       }
-      const folder = (process.env.CLOUDINARY_FOLDER || "linguafirst").replace(/^\/+|\/+$/g, "");
+      const folder = (process.env.CLOUDINARY_FOLDER || "ims_profiles").replace(/^\/+|\/+$/g, "");
       const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
       const result = await cloudinary.uploader.upload(dataUrl, {
         folder,

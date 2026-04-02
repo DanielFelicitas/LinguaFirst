@@ -42,7 +42,11 @@ app.use(async (req, res, next) => {
     await connectDB();
   } catch (err) {
     console.error(err);
-    return res.status(503).json({ message: "Database unavailable. Set MONGODB_URI." });
+    const missingUri = !process.env.MONGODB_URI;
+    const message = missingUri
+      ? "Database unavailable: set MONGODB_URI on the server (e.g. Vercel → Project → Settings → Environment Variables). Do not put MongoDB in VITE_* — that is frontend-only."
+      : "Database unavailable: check MONGODB_URI value and that Atlas allows your deployment IP (0.0.0.0/0 for Vercel).";
+    return res.status(503).json({ message });
   }
   next();
 });

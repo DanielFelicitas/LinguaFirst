@@ -63,7 +63,6 @@ export function GamePlay() {
   const [wordsByKey, setWordsByKey] = useState<Record<string, VocabWord[]>>({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [level, setLevel] = useState<"easy" | "medium" | "hard">("easy");
 
   useEffect(() => {
     let cancelled = false;
@@ -120,29 +119,26 @@ export function GamePlay() {
     ? ((game?.config as any).items as DescribeSeeItem[])
     : defaultDescribeItems();
 
+  const scrambleWordsFiltered = words.filter((w) => w.english.length >= 4);
+  const scrambleWords = scrambleWordsFiltered.length > 0 ? scrambleWordsFiltered : words;
+  const sentenceMax = Math.min(8, sentenceItems.length);
+  const describeMax = Math.min(5, describeItems.length);
+  const wordSearchCfg = game?.config as { wordSearchCount?: number } | undefined;
+  const wordSearchCount = Math.min(
+    10,
+    Math.max(6, Number(wordSearchCfg?.wordSearchCount) || 8)
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/games" className="text-sm font-medium text-teal-700 hover:underline">
-          ← Back to games list
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <Link
+          to="/games"
+          className="inline-flex w-full min-h-11 max-w-full items-center justify-center gap-2 rounded-xl border border-teal-200/90 bg-teal-50/90 px-4 text-sm font-semibold text-teal-900 shadow-sm transition hover:bg-teal-100/90 dark:border-teal-800/80 dark:bg-teal-950/50 dark:text-teal-100 dark:hover:bg-teal-900/40 sm:w-auto sm:min-h-0 sm:justify-start sm:border-0 sm:bg-transparent sm:px-0 sm:font-medium sm:shadow-none sm:hover:bg-transparent sm:hover:underline"
+        >
+          <span aria-hidden>←</span>
+          <span>All games</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-700">Level:</span>
-          {(["easy", "medium", "hard"] as const).map((lv) => (
-            <button
-              key={lv}
-              type="button"
-              onClick={() => setLevel(lv)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                level === lv
-                  ? "border-teal-400 bg-teal-50 text-teal-900"
-                  : "border-slate-200 bg-white text-slate-600"
-              }`}
-            >
-              {lv}
-            </button>
-          ))}
-        </div>
       </div>
 
       <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:p-8">
@@ -150,17 +146,11 @@ export function GamePlay() {
           <WordScrambleGame
             title={game?.title || "Scramble words"}
             description={game?.description || "Unscramble the letters."}
-            words={
-              level === "hard"
-                ? words.filter((w) => w.english.length >= 6)
-                : level === "medium"
-                  ? words.filter((w) => w.english.length >= 4)
-                  : words
-            }
+            words={scrambleWords}
             answerSide={game?.config?.answerSide === "english" ? "english" : "bikol"}
             scrambleMode={(game?.config as any)?.scrambleMode}
             customPuzzles={(game?.config as any)?.scramblePuzzles}
-            showHint={level !== "hard"}
+            showHint
           />
         ) : null}
 
@@ -169,7 +159,7 @@ export function GamePlay() {
             title={game?.title || "Is the sentence correct?"}
             description={game?.description || "Choose if the sentence is correct or incorrect."}
             items={sentenceItems}
-            maxItems={level === "hard" ? Math.min(12, sentenceItems.length) : level === "medium" ? Math.min(8, sentenceItems.length) : Math.min(5, sentenceItems.length)}
+            maxItems={sentenceMax}
           />
         ) : null}
 
@@ -178,7 +168,7 @@ export function GamePlay() {
             title={game?.title || "Describe what you see"}
             description={game?.description || "Pick the best description."}
             items={describeItems}
-            maxItems={level === "hard" ? Math.min(8, describeItems.length) : level === "medium" ? Math.min(5, describeItems.length) : Math.min(3, describeItems.length)}
+            maxItems={describeMax}
           />
         ) : null}
 
@@ -187,14 +177,8 @@ export function GamePlay() {
             title={game?.title || "Word search"}
             description={game?.description || "Find hidden words in the grid."}
             words={words}
-            wordCount={
-              level === "hard"
-                ? Math.min(12, Math.max(8, Number((game?.config as any)?.wordSearchCount) || 10))
-                : level === "medium"
-                  ? Math.min(10, Math.max(6, Number((game?.config as any)?.wordSearchCount) || 8))
-                  : Math.min(8, Math.max(4, Number((game?.config as any)?.wordSearchCount) || 6))
-            }
-            allowTyping={level !== "hard"}
+            wordCount={wordSearchCount}
+            allowTyping
           />
         ) : null}
       </section>

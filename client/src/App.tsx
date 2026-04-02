@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { LessonLegacyRedirect } from "./components/LessonLegacyRedirect";
 import { Home } from "./pages/Home";
 import { Lessons } from "./pages/Lessons";
 import { QuizHub } from "./pages/QuizHub";
@@ -18,8 +19,10 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="lessons/module/:moduleId/lesson/:lessonId" element={<Lessons />} />
+        <Route path="lessons/module/:moduleId" element={<Lessons />} />
         <Route path="lessons" element={<Lessons />} />
-        <Route path="lessons/:lessonId" element={<Lessons />} />
+        <Route path="lessons/:lessonId" element={<LessonLegacyRedirect />} />
         <Route path="quiz" element={<QuizHub />} />
         <Route path="quiz/:id" element={<QuizTake />} />
         <Route path="games" element={<Games />} />

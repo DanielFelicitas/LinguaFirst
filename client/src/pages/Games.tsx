@@ -2,69 +2,76 @@ import { Link } from "react-router-dom";
 
 export function Games() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
         <h1
-          className="text-3xl font-semibold text-slate-800 md:text-4xl"
+          className="text-2xl font-semibold text-slate-800 sm:text-3xl md:text-4xl"
           style={{ fontFamily: "Fraunces, Georgia, serif" }}
         >
           Games
         </h1>
-        <p className="mt-2 max-w-3xl text-slate-600">
-          Click a game tile to open a dedicated game page.
+        <p className="mt-2 max-w-3xl text-sm text-slate-600 sm:text-base">
+          Tap a game to play. Use back on the game screen to return here.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 md:gap-6">
         {[
           [
             "scramble",
             "Scramble words",
             "Unscramble letters and type the answer.",
-            "🧩",
-            "from-violet-400 via-fuchsia-400 to-pink-400",
+            "/dist/Scrable-logo.png",
           ],
           [
             "sentence",
             "Is the sentence correct?",
             "Decide whether each sentence is correct.",
-            "✅",
-            "from-emerald-400 via-teal-400 to-cyan-400",
+            "/dist/sentence-correct.png",
           ],
           [
             "describe",
             "Describe what you see",
             "Choose the best description for the prompt/image.",
-            "🖼️",
-            "from-amber-300 via-orange-300 to-rose-300",
+            "/dist/describe-what-you-see.png",
           ],
           [
             "word-search",
             "Word search",
             "Find hidden words in the letter grid.",
-            "🔎",
-            "from-sky-400 via-indigo-400 to-violet-400",
+            "/dist/wordsearch-logo.png",
           ],
-        ].map(([slug, label, desc, icon, grad]) => (
+        ].map(([slug, label, desc, logoSrc]) => (
           <Link
             key={slug}
             to={`/games/${slug}`}
-            className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-lg"
+            className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white/90 shadow-sm backdrop-blur-sm transition active:scale-[0.99] hover:-translate-y-0.5 hover:border-teal-200/80 hover:shadow-lg dark:border-slate-700/80 dark:bg-slate-900/70"
           >
-            <div className={`h-24 bg-gradient-to-r ${grad} p-3 text-white`}>
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-2xl drop-shadow-sm">{icon}</p>
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                  Arcade
-                </span>
+            <div className="relative flex min-h-[12rem] flex-1 flex-col items-center justify-center border-b border-slate-100 bg-gradient-to-b from-slate-50/95 to-cyan-50/40 p-4 sm:min-h-[12.5rem] sm:p-4 md:min-h-[14rem] md:p-5 dark:border-slate-700/60 dark:from-slate-900/80 dark:to-slate-800/60">
+              <span className="absolute right-2 top-2 rounded-full bg-slate-100/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600 backdrop-blur-sm dark:bg-slate-700/90 dark:text-slate-300 sm:text-[10px]">
+                Arcade
+              </span>
+              <div className="flex h-full w-full min-h-[10rem] max-h-[min(70vw,22rem)] items-center justify-center sm:max-h-[min(28vw,20rem)] md:max-h-[min(22vw,22rem)]">
+                <img
+                  src={logoSrc}
+                  alt={label}
+                  className="max-h-full max-w-full object-contain drop-shadow-sm"
+                  loading="lazy"
+                />
               </div>
-              <p className="mt-3 line-clamp-1 text-sm font-bold tracking-wide">{label}</p>
             </div>
-            <div className="p-3">
-              <p className="text-xs text-slate-500">{desc}</p>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Free</span>
-                <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 group-hover:bg-teal-50 group-hover:text-teal-800">
+            <div className="flex flex-1 flex-col gap-2 p-3 sm:p-3">
+              <p className="line-clamp-2 text-center text-sm font-semibold leading-tight text-slate-900 sm:text-xs md:text-sm dark:text-slate-100">
+                {label}
+              </p>
+              <p className="line-clamp-3 text-center text-xs leading-snug text-slate-500 sm:text-[10px] md:text-xs dark:text-slate-400">
+                {desc}
+              </p>
+              <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700/60">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:text-[10px]">
+                  Free
+                </span>
+                <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 group-hover:bg-teal-50 group-hover:text-teal-800 sm:px-3 dark:bg-slate-800 dark:text-slate-200 dark:group-hover:bg-teal-900/40 dark:group-hover:text-teal-200">
                   Play
                 </span>
               </div>

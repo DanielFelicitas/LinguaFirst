@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { GameCompletionSummary } from "@/components/GameCompletionSummary";
 import type { VocabWord } from "@/lib/api";
 
 const GRID_SIZE = 12;
@@ -285,8 +286,17 @@ export function WordSearchGame({
             <p className="mt-3 text-sm text-slate-600">Hard mode: find words by selecting letters only.</p>
           )}
 
-          {feedback ? <p className="mt-2 text-sm text-slate-700">{feedback}</p> : null}
-          {done ? <p className="mt-2 text-sm font-semibold text-emerald-700">Puzzle complete! Great work.</p> : null}
+          {feedback && !done ? <p className="mt-2 text-sm text-slate-700">{feedback}</p> : null}
+          {done ? (
+            <div className="mt-4">
+              <GameCompletionSummary
+                score={found.length}
+                total={placed.length}
+                pass
+                onPlayAgain={() => setSeed((s) => s + 1)}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

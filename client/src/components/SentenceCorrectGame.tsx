@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { GameCompletionSummary } from "@/components/GameCompletionSummary";
 
 export type SentenceCorrectItem = {
   sentence: string;
@@ -20,6 +21,7 @@ export function SentenceCorrectGame({
   const list = useMemo(() => items.slice(0, Math.max(1, maxItems ?? items.length)), [items, maxItems]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<Array<null | boolean>>(() => new Array(list.length).fill(null));
+  const [showComplete, setShowComplete] = useState(false);
 
   const item = list[idx];
   const answered = picked[idx] !== null;
@@ -35,7 +37,37 @@ export function SentenceCorrectGame({
     return { correct, attempted, total: list.length };
   }, [picked, list]);
 
+  const allAnswered = useMemo(() => picked.every((p) => p !== null), [picked]);
+
+  useEffect(() => {
+    if (allAnswered && list.length > 0) setShowComplete(true);
+  }, [allAnswered, list.length]);
+
+  const resetRound = () => {
+    setPicked(new Array(list.length).fill(null));
+    setIdx(0);
+    setShowComplete(false);
+  };
+
   if (!list.length) return <p className="text-sm text-slate-500">Add sentence items in Admin to play this game.</p>;
+
+  if (showComplete) {
+    return (
+      <div className="space-y-4">
+        {(title || description) && (
+          <div>
+            {title ? (
+              <h2 className="text-xl font-semibold text-slate-800" style={{ fontFamily: "Fraunces, Georgia, serif" }}>
+                {title}
+              </h2>
+            ) : null}
+            {description ? <p className="mt-1 text-slate-600">{description}</p> : null}
+          </div>
+        )}
+        <GameCompletionSummary score={score.correct} total={score.total} onPlayAgain={resetRound} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

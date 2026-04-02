@@ -5,6 +5,7 @@ import { Lessons } from "./pages/Lessons";
 import { QuizHub } from "./pages/QuizHub";
 import { QuizTake } from "./pages/QuizTake";
 import { Games } from "./pages/Games";
+import { GamePlay } from "./pages/GamePlay";
 import { Contact } from "./pages/Contact";
 import { About } from "./pages/About";
 import { Login } from "./pages/Login";
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="quiz" element={<QuizHub />} />
         <Route path="quiz/:id" element={<QuizTake />} />
         <Route path="games" element={<Games />} />
+        <Route path="games/:gameKey" element={<GamePlay />} />
         <Route path="contact" element={<Contact />} />
         <Route path="about" element={<About />} />
         <Route path="login" element={<Login />} />

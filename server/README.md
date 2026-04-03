@@ -37,7 +37,7 @@ npm run seed
 
 1. Create a Vercel project with **Root Directory** `server`.  
 2. Add the same environment variables as in `.env` (including Cloudinary).  
-3. `server/vercel.json` + `server/api/[[...path]].js` expose the Express app as a serverless function (catch-all so every `/api/*` path hits one handler).
+3. `server/vercel.json` (v2 **builds** + **routes**, like [mern-stack-ecommerce-digital-products/backend](https://github.com/c0d1nn/mern-stack-ecommerce-digital-products/tree/master/backend)) + root `server/index.js` export the Express app for `@vercel/node`.
 
 ### Troubleshooting
 

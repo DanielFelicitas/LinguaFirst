@@ -7,7 +7,7 @@
 
 ## MERN split deploy on Vercel
 
-The API uses **open CORS** (any browser origin). You only need **`VITE_API_URL`** on the client and MongoDB/JWT (and Cloudinary if used) on the server — no **`FRONTEND_URLS`** step. **Cloudinary** env names match **Inventory Management System** (trio preferred over **`CLOUDINARY_URL`**). LinguaFiRST uses **`serverless-http`** + **`api/[[...path]].js`** (Vercel catch-all) on the API.
+The API uses **open CORS** (any browser origin). You only need **`VITE_API_URL`** on the client and MongoDB/JWT (and Cloudinary if used) on the server — no **`FRONTEND_URLS`** step. **Cloudinary** env names match **Inventory Management System** (trio preferred over **`CLOUDINARY_URL`**). The API deploys like [c0d1nn/mern-stack-ecommerce-digital-products](https://github.com/c0d1nn/mern-stack-ecommerce-digital-products): root **`server/index.js`**, **`vercel.json` `version`: 2**, **`builds`** with **`@vercel/node`**, **`routes`** → **`/`** (Express `module.exports = app`).
 
 ## MERN split deploy on Vercel (tutorial flow)
 
@@ -20,7 +20,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 
 ### 2. Vercel config files (already in repo)
 
-- **`server/vercel.json`** — rewrites traffic to the serverless API (`api/[[...path]].js`).
+- **`server/vercel.json`** — legacy **builds** + **routes** (same pattern as the ecommerce template); entry is **`index.js`** at the server root.
 - **`client/vercel.json`** — Vite build + SPA fallback for React Router.
 
 ### 3. Deploy the **back-end** first (Vercel project for `server/`)

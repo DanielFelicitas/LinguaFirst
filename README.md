@@ -48,7 +48,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 | ------- | ----------- |
 | Network tab shows requests to **`https://your-frontend.vercel.app/api/...`** (404) | **`VITE_API_URL`** is missing or not applied. Set it on the **client** project to the **API** origin only. **Redeploy the client** — Vite reads env at **build** time. |
 | Accidentally set `VITE_API_URL` to `…vercel.app/api` | Use the API **origin** only; paths already include `/api`. |
-| **`/assets/index-*.css` 404** (styles missing) | `client/vercel.json` uses `{ "handle": "filesystem" }` then `index.html` fallback. Redeploy the **client**. |
+| **`/assets/index-*.css` 404** (styles missing) | SPA rewrite must not catch `/assets/*`. `client/vercel.json` rewrites `/(?!assets/).*` → `index.html` (no `handle` — not valid in all Vercel schemas). Redeploy the **client**. |
 
 ---
 

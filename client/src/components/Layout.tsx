@@ -68,7 +68,7 @@ export function Layout() {
       }
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-70 dark:opacity-50"
+        className="pointer-events-none absolute inset-0 opacity-70"
         aria-hidden
         style={{
           background:
@@ -76,7 +76,7 @@ export function Layout() {
         }}
       />
       {/* z-30 so the profile dropdown (overflowing below the header) stacks above <main z-10> */}
-      <header className="relative z-30 border-b border-slate-200/80 bg-white/65 backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/70">
+      <header className="relative z-30 border-b border-slate-200/80 bg-white/65 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <Link
             to="/"
@@ -84,12 +84,12 @@ export function Layout() {
             onClick={() => setMobileMenuOpen(false)}
           >
             <span
-              className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-2xl md:text-3xl"
+              className="text-xl font-bold tracking-tight text-slate-800 sm:text-2xl md:text-3xl"
               style={{ fontFamily: "Fraunces, Georgia, serif" }}
             >
-              Lingua<span className="text-cyan-600 dark:text-cyan-400">FiRST</span>
+              Lingua<span className="text-cyan-600">FiRST</span>
             </span>
-            <span className="hidden text-sm font-semibold text-slate-500 dark:text-slate-400 lg:inline">
+            <span className="hidden text-sm font-semibold text-slate-500 lg:inline">
               Bikol ↔ English
             </span>
           </Link>
@@ -117,13 +117,13 @@ export function Layout() {
               <div className="hidden items-center gap-3 md:flex">
                 <Link
                   to="/login"
-                  className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+                  className="text-sm font-medium text-slate-600 hover:text-slate-900"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/register"
-                  className="rounded-lg bg-gradient-to-r from-slate-200 via-cyan-100 to-teal-100 px-4 py-2 text-sm font-semibold text-slate-800 shadow-md shadow-slate-300/40 hover:brightness-[1.02] dark:from-slate-700 dark:via-cyan-900/40 dark:to-teal-900/40 dark:text-slate-100"
+                  className="rounded-lg bg-gradient-to-r from-slate-200 via-cyan-100 to-teal-100 px-4 py-2 text-sm font-semibold text-slate-800 shadow-md shadow-slate-300/40 hover:brightness-[1.02]"
                 >
                   Join
                 </Link>
@@ -132,7 +132,7 @@ export function Layout() {
 
             <button
               type="button"
-              className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 md:hidden dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 md:hidden"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-main-menu"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
@@ -162,12 +162,12 @@ export function Layout() {
           />
           <div
             id="mobile-main-menu"
-            className="absolute inset-y-0 right-0 z-10 flex w-full max-w-sm flex-col border-l border-slate-200/90 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+            className="absolute inset-y-0 right-0 z-10 flex w-full max-w-sm flex-col border-l border-slate-200/90 bg-white shadow-2xl"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-slate-200/90 px-4 py-4 dark:border-slate-700">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200/90 px-4 py-4">
               <button
                 type="button"
-                className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
@@ -175,7 +175,7 @@ export function Layout() {
                 </svg>
                 <span>Back</span>
               </button>
-              <h2 id="mobile-menu-title" className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              <h2 id="mobile-menu-title" className="text-base font-semibold text-slate-900">
                 Menu
               </h2>
               <span className="w-16" aria-hidden />
@@ -191,8 +191,8 @@ export function Layout() {
                       className={({ isActive }) =>
                         `flex min-h-12 items-center rounded-xl px-4 text-base font-medium transition ${
                           linkActive(pathname, to, isActive)
-                            ? "bg-cyan-50 text-cyan-900 dark:bg-cyan-950/50 dark:text-cyan-100"
-                            : "text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-cyan-50 text-cyan-900"
+                            : "text-slate-800 hover:bg-slate-100"
                         }`
                       }
                     >
@@ -204,18 +204,18 @@ export function Layout() {
             </nav>
 
             {!loading && !user ? (
-              <div className="border-t border-slate-200/90 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] dark:border-slate-700">
+              <div className="border-t border-slate-200/90 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 <div className="flex flex-col gap-2">
                   <Link
                     to="/login"
-                    className="flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                    className="flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-800"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign in
                   </Link>
                   <Link
                     to="/register"
-                    className="flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-slate-200 via-cyan-100 to-teal-100 text-base font-semibold text-slate-800 dark:from-slate-700 dark:via-cyan-900/40 dark:to-teal-900/40 dark:text-slate-100"
+                    className="flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-slate-200 via-cyan-100 to-teal-100 text-base font-semibold text-slate-800"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Join
@@ -225,14 +225,14 @@ export function Layout() {
             ) : null}
 
             {!loading && user ? (
-              <div className="border-t border-slate-200/90 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] dark:border-slate-700">
-                <p className="mb-3 truncate px-1 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <div className="border-t border-slate-200/90 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <p className="mb-3 truncate px-1 text-xs font-medium uppercase tracking-wide text-slate-500">
                   Signed in
                 </p>
                 <div className="flex flex-col gap-1">
                   <Link
                     to="/dashboard"
-                    className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Progress & notes
@@ -240,7 +240,7 @@ export function Layout() {
                   {user.role === "admin" ? (
                     <Link
                       to="/admin/content"
-                      className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                      className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Manage content
@@ -248,7 +248,7 @@ export function Layout() {
                   ) : null}
                   <button
                     type="button"
-                    className="mt-1 flex min-h-11 w-full items-center rounded-lg px-3 text-left text-sm font-medium text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                    className="mt-1 flex min-h-11 w-full items-center rounded-lg px-3 text-left text-sm font-medium text-rose-700 hover:bg-rose-50"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       logout();
@@ -273,7 +273,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="relative z-0 mt-auto shrink-0 border-t border-slate-200/80 bg-white/85 py-6 text-center text-sm text-slate-500 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/85 dark:text-slate-400">
+      <footer className="relative z-0 mt-auto shrink-0 border-t border-slate-200/80 bg-white/85 py-6 text-center text-sm text-slate-500 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 sm:px-6">
           <p>© {new Date().getFullYear()} LinguaFiRST · Learn Bikol and English together.</p>
         </div>

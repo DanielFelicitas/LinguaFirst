@@ -134,7 +134,7 @@ export function GamePlay() {
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <Link
           to="/games"
-          className="inline-flex w-full min-h-11 max-w-full items-center justify-center gap-2 rounded-xl border border-teal-200/90 bg-teal-50/90 px-4 text-sm font-semibold text-teal-900 shadow-sm transition hover:bg-teal-100/90 dark:border-teal-800/80 dark:bg-teal-950/50 dark:text-teal-100 dark:hover:bg-teal-900/40 sm:w-auto sm:min-h-0 sm:justify-start sm:border-0 sm:bg-transparent sm:px-0 sm:font-medium sm:shadow-none sm:hover:bg-transparent sm:hover:underline"
+          className="inline-flex w-full min-h-11 max-w-full items-center justify-center gap-2 rounded-xl border border-teal-200/90 bg-teal-50/90 px-4 text-sm font-semibold text-teal-900 shadow-sm transition hover:bg-teal-100/90 sm:w-auto sm:min-h-0 sm:justify-start sm:border-0 sm:bg-transparent sm:px-0 sm:font-medium sm:shadow-none sm:hover:bg-transparent sm:hover:underline"
         >
           <span aria-hidden>←</span>
           <span>All games</span>

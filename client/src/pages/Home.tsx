@@ -5,13 +5,13 @@ export function Home() {
     <div className="space-y-16">
       <section className="text-center">
         <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-teal-600">
-          <b>Bikol ↔ English</b>
+          <b>Bikol ↔ Filipino ↔ English</b>
         </p>
         <h1
           className="mx-auto max-w-3xl text-4xl font-semibold leading-tight text-slate-800 sm:text-5xl md:text-6xl"
           style={{ fontFamily: "Fraunces, Georgia, serif" }}
         >
-          <span className="text-gradient"><b>LinguaFiRST</b></span>
+          <span className="text-green-700"><b>LinguaFiRST</b></span>
           <span className="mt-2 block text-slate-700">Learn at your pace. Speak with pride.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">

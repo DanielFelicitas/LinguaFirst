@@ -21,7 +21,7 @@ export function Contact() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <h1
-        className="text-3xl font-semibold text-slate-800 dark:text-slate-100 md:text-4xl"
+        className="text-3xl font-semibold text-slate-800 md:text-4xl"
         style={{ fontFamily: "Fraunces, Georgia, serif" }}
       >
         Contact
@@ -29,25 +29,25 @@ export function Contact() {
 
       <section className="glass rounded-2xl p-6 sm:p-8">
         <h2
-          className="text-2xl font-semibold text-slate-800 dark:text-slate-100"
+          className="text-2xl font-semibold text-slate-800"
           style={{ fontFamily: "Fraunces, Georgia, serif" }}
         >
           Meet the researchers!
         </h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {researchers.map((r) => (
-            <article key={r.name} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-700/70 dark:bg-slate-900/60">
+            <article key={r.name} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4">
               <div className="flex items-start gap-3">
-                <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-200">
+                <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800">
                   {initials(r.name)}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{r.name}</h3>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Bachelor of Secondary Education</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">Major in English</p>
+                  <h3 className="font-semibold text-slate-900">{r.name}</h3>
+                  <p className="mt-1 text-sm text-slate-600">Bachelor of Secondary Education</p>
+                  <p className="text-sm text-slate-600">Major in English</p>
                   <p className="mt-2 text-sm">
-                    <span className="font-medium text-slate-800 dark:text-slate-200">E-MAIL ADDRESS: </span>
-                    <a className="text-cyan-700 hover:underline dark:text-cyan-300" href={`mailto:${r.email}`}>
+                    <span className="font-medium text-slate-800">E-MAIL ADDRESS: </span>
+                    <a className="text-cyan-700 hover:underline" href={`mailto:${r.email}`}>
                       {r.email}
                     </a>
                   </p>

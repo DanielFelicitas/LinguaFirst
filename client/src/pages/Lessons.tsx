@@ -295,7 +295,7 @@ export function Lessons() {
         <div className="rounded-2xl border border-slate-200/90 bg-white/95 p-4 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-5 lg:p-5">
           <Link
             to="/lessons"
-            className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-teal-800 hover:underline dark:text-teal-200"
+            className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-teal-800 hover:underline"
           >
             <span aria-hidden>←</span>
             All modules
@@ -383,10 +383,10 @@ export function Lessons() {
           ) : lesson ? (
             <>
               {isLessonRoute ? (
-                <div className="mb-4 border-b border-slate-100 pb-4 dark:border-slate-700">
+                <div className="mb-4 border-b border-slate-100 pb-4">
                   <Link
                     to={`/lessons/module/${moduleId}`}
-                    className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-teal-800 hover:underline dark:text-teal-200"
+                    className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-teal-800 hover:underline"
                   >
                     <span aria-hidden>←</span>
                     Back to module

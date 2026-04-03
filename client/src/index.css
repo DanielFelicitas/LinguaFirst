@@ -76,29 +76,3 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    @apply bg-slate-950 text-slate-200;
-  }
-
-  .glass {
-    @apply border border-slate-700/70 bg-slate-900/55 shadow-lg shadow-black/25 backdrop-blur-md;
-  }
-
-  .text-gradient {
-    @apply bg-gradient-to-r from-sky-300 via-cyan-300 to-teal-300 bg-clip-text text-transparent;
-  }
-
-  input,
-  select,
-  textarea {
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(100, 116, 139, 0.55);
-    color: rgb(226 232 240);
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: rgb(148 163 184);
-  }
-}

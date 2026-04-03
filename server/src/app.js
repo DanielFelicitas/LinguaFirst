@@ -20,6 +20,14 @@ app.use(
   })
 );
 
+/** Vercel rewrite "/" → "/api" can set `req.url` to `/api`; root liveness is registered as `GET /`. */
+app.use((req, _res, next) => {
+  if (req.url === "/api" || req.url.startsWith("/api?")) {
+    req.url = req.url === "/api" ? "/" : "/" + req.url.slice(4);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 /** Liveness — no MongoDB (Vercel / uptime checks). Must stay above connectDB middleware. */

@@ -7,7 +7,7 @@
 
 ## MERN split deploy on Vercel
 
-The API uses **open CORS** (any browser origin). You only need **`VITE_API_URL`** on the client and MongoDB/JWT (and Cloudinary if used) on the server — no **`FRONTEND_URLS`** step. **Cloudinary** env names match **Inventory Management System** (trio preferred over **`CLOUDINARY_URL`**). LinguaFiRST uses **`serverless-http`** + **`api/index.js`** on the API.
+The API uses **open CORS** (any browser origin). You only need **`VITE_API_URL`** on the client and MongoDB/JWT (and Cloudinary if used) on the server — no **`FRONTEND_URLS`** step. **Cloudinary** env names match **Inventory Management System** (trio preferred over **`CLOUDINARY_URL`**). LinguaFiRST uses **`serverless-http`** + **`api/[[...path]].js`** (Vercel catch-all) on the API.
 
 ## MERN split deploy on Vercel (tutorial flow)
 
@@ -20,7 +20,7 @@ Do **not** commit `.env` files (see `.gitignore`). Use `.env.example` as a templ
 
 ### 2. Vercel config files (already in repo)
 
-- **`server/vercel.json`** — rewrites traffic to the serverless API (`api/index.js`).
+- **`server/vercel.json`** — rewrites traffic to the serverless API (`api/[[...path]].js`).
 - **`client/vercel.json`** — Vite build + SPA fallback for React Router.
 
 ### 3. Deploy the **back-end** first (Vercel project for `server/`)

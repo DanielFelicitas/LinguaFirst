@@ -3,6 +3,7 @@ const multer = require("multer");
 const Module = require("../models/Module");
 const Lesson = require("../models/Lesson");
 const Quiz = require("../models/Quiz");
+const EssaySubmission = require("../models/EssaySubmission");
 const VocabularyWord = require("../models/VocabularyWord");
 const Game = require("../models/Game");
 const { auth, requireAdmin } = require("../middleware/auth");
@@ -25,6 +26,32 @@ const GAME_TYPES = [
   "language_challenge",
   "word_search",
 ];
+
+function normalizeQuizType(quizType) {
+  if (quizType === "true_false") return "true_false";
+  if (quizType === "essay") return "essay";
+  return "multiple_choice";
+}
+
+function validateQuizQuestions(questions, qt) {
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return "title and questions[] required";
+  }
+  for (const q of questions) {
+    if (!q?.prompt || !String(q.prompt).trim()) return "Each question needs a prompt";
+    if (qt === "essay") continue;
+    if (!Array.isArray(q.options) || q.options.length < 2) {
+      return "Each question needs at least 2 options";
+    }
+    if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+      return "Each question needs valid correctIndex";
+    }
+    if (qt === "true_false" && q.options.length !== 2) {
+      return "True/false quizzes need exactly 2 options per question";
+    }
+  }
+  return null;
+}
 
 function normalizeSimpleSlidesPayload(body, lessonType) {
   if (lessonType !== "simple") return [];
@@ -166,21 +193,10 @@ router.delete("/lessons/:id", async (req, res, next) => {
 router.post("/quizzes", async (req, res, next) => {
   try {
     const { title, moduleId, questions, quizType } = req.body || {};
-    if (!title || !Array.isArray(questions) || questions.length === 0) {
-      return res.status(400).json({ message: "title and questions[] required" });
-    }
-    const qt = quizType === "true_false" ? "true_false" : "multiple_choice";
-    for (const q of questions) {
-      if (!q.prompt || !Array.isArray(q.options) || q.options.length < 2) {
-        return res.status(400).json({ message: "Each question needs prompt and at least 2 options" });
-      }
-      if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex >= q.options.length) {
-        return res.status(400).json({ message: "Each question needs valid correctIndex" });
-      }
-      if (qt === "true_false" && q.options.length !== 2) {
-        return res.status(400).json({ message: "True/false quizzes need exactly 2 options per question" });
-      }
-    }
+    if (!title) return res.status(400).json({ message: "title and questions[] required" });
+    const qt = normalizeQuizType(quizType);
+    const quizErr = validateQuizQuestions(questions, qt);
+    if (quizErr) return res.status(400).json({ message: quizErr });
     const quiz = await Quiz.create({
       title,
       moduleId: moduleId || undefined,
@@ -196,15 +212,20 @@ router.post("/quizzes", async (req, res, next) => {
 router.patch("/quizzes/:id", async (req, res, next) => {
   try {
     const { title, moduleId, questions, quizType } = req.body || {};
+    const existing = await Quiz.findById(req.params.id).lean();
+    if (!existing) return res.status(404).json({ message: "Quiz not found" });
+    const qt = normalizeQuizType(quizType !== undefined ? quizType : existing.quizType);
+    if (questions !== undefined) {
+      const quizErr = validateQuizQuestions(questions, qt);
+      if (quizErr) return res.status(400).json({ message: quizErr });
+    }
     const quiz = await Quiz.findByIdAndUpdate(
       req.params.id,
       {
         ...(title !== undefined && { title }),
         ...(moduleId !== undefined && { moduleId }),
         ...(questions !== undefined && { questions }),
-        ...(quizType !== undefined && {
-          quizType: quizType === "true_false" ? "true_false" : "multiple_choice",
-        }),
+        ...(quizType !== undefined && { quizType: qt }),
       },
       { new: true }
     );
@@ -221,6 +242,79 @@ router.delete("/quizzes/:id", async (req, res, next) => {
     if (!r) return res.status(404).json({ message: "Quiz not found" });
     res.json({ ok: true });
   } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/essay-submissions", async (req, res, next) => {
+  try {
+    const filter = req.query.quizId ? { quizId: req.query.quizId } : {};
+    const submissions = await EssaySubmission.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("userId", "displayName email")
+      .populate("quizId", "title")
+      .lean();
+    res.json({ submissions });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/essay-submissions/:id", async (req, res, next) => {
+  try {
+    const r = await EssaySubmission.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Submission not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/essay-submissions", async (req, res, next) => {
+  try {
+    const filter = req.query.quizId ? { quizId: req.query.quizId } : {};
+    const r = await EssaySubmission.deleteMany(filter);
+    res.json({ ok: true, deleted: r.deletedCount });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch("/essay-submissions/:id/grade", async (req, res, next) => {
+  try {
+    const submission = await EssaySubmission.findById(req.params.id);
+    if (!submission) return res.status(404).json({ message: "Submission not found" });
+
+    const grades = Array.isArray(req.body?.grades) ? req.body.grades : [];
+    if (grades.length !== submission.responses.length) {
+      return res.status(400).json({ message: "Grade count does not match responses" });
+    }
+
+    submission.responses = submission.responses.map((r, i) => {
+      const g = grades[i] || {};
+      const score = g.score === null || g.score === undefined || g.score === "" ? null : Number(g.score);
+      const maxScore = g.maxScore === null || g.maxScore === undefined || g.maxScore === "" ? null : Number(g.maxScore);
+      if (score !== null && !Number.isFinite(score)) throw new Error(`Invalid score for question ${i + 1}`);
+      if (maxScore !== null && !Number.isFinite(maxScore)) throw new Error(`Invalid maxScore for question ${i + 1}`);
+      if (score !== null && score < 0) throw new Error(`Score must be >= 0 for question ${i + 1}`);
+      if (maxScore !== null && maxScore < 0) throw new Error(`Max score must be >= 0 for question ${i + 1}`);
+      if (score !== null && maxScore !== null && score > maxScore) {
+        throw new Error(`Score cannot exceed max score for question ${i + 1}`);
+      }
+      return {
+        ...r.toObject(),
+        score,
+        maxScore,
+        feedback: String(g.feedback || ""),
+      };
+    });
+
+    await submission.save();
+    res.json({ submission: submission.toObject() });
+  } catch (e) {
+    if (e instanceof Error && (e.message.startsWith("Invalid") || e.message.includes("question"))) {
+      return res.status(400).json({ message: e.message });
+    }
     next(e);
   }
 });

@@ -238,13 +238,22 @@ export function Layout() {
                     Progress & notes
                   </Link>
                   {user.role === "admin" ? (
-                    <Link
-                      to="/admin/content"
-                      className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Manage content
-                    </Link>
+                    <>
+                      <Link
+                        to="/admin/content"
+                        className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Manage content
+                      </Link>
+                      <Link
+                        to="/admin/essay-submissions"
+                        className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Essay submissions
+                      </Link>
+                    </>
                   ) : null}
                   <button
                     type="button"

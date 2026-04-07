@@ -2,16 +2,17 @@ const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema({
   prompt: { type: String, required: true },
-  options: [{ type: String, required: true }],
-  correctIndex: { type: Number, required: true },
+  options: [{ type: String }],
+  correctIndex: { type: Number, default: null },
+  sampleAnswer: { type: String, default: "" },
 });
 
 const quizSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Module" },
-    /** multiple_choice = 4 options; true_false = options stored as True/False */
-    quizType: { type: String, enum: ["multiple_choice", "true_false"], default: "multiple_choice" },
+    /** multiple_choice = options + correctIndex; true_false = True/False options; essay = free text answers */
+    quizType: { type: String, enum: ["multiple_choice", "true_false", "essay"], default: "multiple_choice" },
     questions: [questionSchema],
   },
   { timestamps: true }

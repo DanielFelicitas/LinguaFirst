@@ -13,6 +13,7 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminContent } from "./pages/AdminContent";
+import { AdminEssaySubmissions } from "./pages/AdminEssaySubmissions";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="register" element={<Register />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="admin/content" element={<AdminContent />} />
+        <Route path="admin/essay-submissions" element={<AdminEssaySubmissions />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

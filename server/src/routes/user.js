@@ -1,6 +1,8 @@
 const express = require("express");
 const Note = require("../models/Note");
 const Progress = require("../models/Progress");
+const Quiz = require("../models/Quiz");
+const EssaySubmission = require("../models/EssaySubmission");
 const { auth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -79,6 +81,52 @@ router.post("/progress", auth(true), async (req, res, next) => {
       { new: true, upsert: true }
     );
     res.json({ progress: doc });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/quizzes/:quizId/essay-submissions", auth(true), async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.quizId).lean();
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    if (quiz.quizType !== "essay") return res.status(400).json({ message: "This quiz is not an essay quiz" });
+
+    const rawAnswers = Array.isArray(req.body?.answers) ? req.body.answers : [];
+    if (rawAnswers.length !== quiz.questions.length) {
+      return res.status(400).json({ message: "Answer count does not match quiz questions" });
+    }
+    const responses = quiz.questions.map((q, i) => {
+      const answer = String(rawAnswers[i] ?? "").trim();
+      if (!answer) throw new Error(`Question ${i + 1} needs an answer`);
+      return {
+        prompt: String(q.prompt || ""),
+        answer,
+        sampleAnswer: String(q.sampleAnswer || ""),
+      };
+    });
+
+    const submission = await EssaySubmission.create({
+      quizId: quiz._id,
+      userId: req.user._id,
+      responses,
+    });
+    res.status(201).json({ submission });
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("needs an answer")) {
+      return res.status(400).json({ message: e.message });
+    }
+    next(e);
+  }
+});
+
+router.get("/quizzes/:quizId/essay-submissions/me", auth(true), async (req, res, next) => {
+  try {
+    const submission = await EssaySubmission.findOne({ quizId: req.params.quizId, userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!submission) return res.status(404).json({ message: "No submission found" });
+    res.json({ submission });
   } catch (e) {
     next(e);
   }

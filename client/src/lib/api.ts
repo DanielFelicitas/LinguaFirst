@@ -79,6 +79,13 @@ export const api = {
     ),
 
   quiz: (id: string) => request<{ quiz: QuizOut }>(`/api/quizzes/${encodeURIComponent(id)}`),
+  submitEssayQuiz: (quizId: string, answers: string[]) =>
+    request<{ submission: EssaySubmissionOut }>(`/api/quizzes/${encodeURIComponent(quizId)}/essay-submissions`, {
+      method: "POST",
+      body: JSON.stringify({ answers }),
+    }),
+  myEssaySubmission: (quizId: string) =>
+    request<{ submission: EssaySubmissionOut }>(`/api/quizzes/${encodeURIComponent(quizId)}/essay-submissions/me`),
 
   vocabulary: (opts?: { limit?: number; tag?: string }) => {
     const p = new URLSearchParams();
@@ -133,6 +140,29 @@ export const api = {
     deleteModule: (id: string) =>
       request<{ ok: boolean }>(`/api/admin/modules/${encodeURIComponent(id)}`, { method: "DELETE" }),
     listGames: () => request<{ games: GameOut[] }>("/api/admin/games"),
+    listEssaySubmissions: (quizId?: string) =>
+      request<{ submissions: EssaySubmissionOut[] }>(
+        quizId
+          ? `/api/admin/essay-submissions?quizId=${encodeURIComponent(quizId)}`
+          : "/api/admin/essay-submissions"
+      ),
+    deleteEssaySubmission: (id: string) =>
+      request<{ ok: boolean }>(`/api/admin/essay-submissions/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    clearEssaySubmissions: (quizId?: string) =>
+      request<{ ok: boolean; deleted: number }>(
+        quizId
+          ? `/api/admin/essay-submissions?quizId=${encodeURIComponent(quizId)}`
+          : "/api/admin/essay-submissions",
+        { method: "DELETE" }
+      ),
+    gradeEssaySubmission: (
+      id: string,
+      grades: { score: number | null; maxScore: number | null; feedback?: string }[]
+    ) =>
+      request<{ submission: EssaySubmissionOut }>(`/api/admin/essay-submissions/${encodeURIComponent(id)}/grade`, {
+        method: "PATCH",
+        body: JSON.stringify({ grades }),
+      }),
     createLesson: (body: Record<string, unknown>) =>
       request<{ lesson: LessonOut }>("/api/admin/lessons", { method: "POST", body: JSON.stringify(body) }),
     updateLesson: (id: string, body: Record<string, unknown>) =>
@@ -257,8 +287,8 @@ export type QuizOut = {
   _id: string;
   title: string;
   moduleId?: string;
-  quizType?: "multiple_choice" | "true_false";
-  questions: { prompt: string; options: string[]; correctIndex: number }[];
+  quizType?: "multiple_choice" | "true_false" | "essay";
+  questions: { prompt: string; options?: string[]; correctIndex?: number | null; sampleAnswer?: string }[];
 };
 
 export type GameOut = {
@@ -308,4 +338,30 @@ export type ProgressOut = {
   started?: boolean;
   completed: boolean;
   quizScore: number | null;
+};
+
+export type EssaySubmissionOut = {
+  _id: string;
+  quizId:
+    | string
+    | {
+        _id: string;
+        title?: string;
+      };
+  userId:
+    | string
+    | {
+        _id: string;
+        displayName?: string;
+        email?: string;
+      };
+  responses: {
+    prompt: string;
+    answer: string;
+    sampleAnswer?: string;
+    score?: number | null;
+    maxScore?: number | null;
+    feedback?: string;
+  }[];
+  createdAt: string;
 };

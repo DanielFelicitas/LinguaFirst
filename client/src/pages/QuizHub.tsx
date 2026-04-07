@@ -208,7 +208,12 @@ export function QuizHub() {
                 <ul className="grid gap-4 sm:grid-cols-2">
                   {pagedQuizzes.map((q) => {
                     const last = getQuizResult(q._id);
-                    const typeLabel = q.quizType === "true_false" ? "True / false" : "Multiple choice";
+                    const typeLabel =
+                      q.quizType === "true_false"
+                        ? "True / false"
+                        : q.quizType === "essay"
+                          ? "Essay"
+                          : "Multiple choice";
                     const mid = q.moduleId ? String(q.moduleId) : "";
                     const mod = mid ? modulesById[mid] : undefined;
                     const catLabel = mod

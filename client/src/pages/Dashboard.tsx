@@ -135,12 +135,20 @@ export function Dashboard() {
             Add lessons (flipbook or simple), quizzes (multiple choice or true/false), and games (match pairs or word
             scramble) from the content tool.
           </p>
-          <Link
-            to="/admin/content"
-            className="mt-4 inline-block rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700"
-          >
-            Manage lessons, quizzes & games
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              to="/admin/content"
+              className="inline-block rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700"
+            >
+              Manage lessons, quizzes & games
+            </Link>
+            <Link
+              to="/admin/essay-submissions"
+              className="inline-block rounded-xl border border-amber-300 bg-white px-5 py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              View essay submissions
+            </Link>
+          </div>
         </section>
       ) : null}
     </div>

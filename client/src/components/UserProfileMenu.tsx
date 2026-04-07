@@ -91,14 +91,24 @@ export function UserProfileMenu({ user, onLogout }: Props) {
               Progress & notes
             </Link>
             {user.role === "admin" ? (
-              <Link
-                to="/admin/content"
-                role="menuitem"
-                onClick={close}
-                className="block px-4 py-2 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-900"
-              >
-                Manage content
-              </Link>
+              <>
+                <Link
+                  to="/admin/content"
+                  role="menuitem"
+                  onClick={close}
+                  className="block px-4 py-2 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-900"
+                >
+                  Manage content
+                </Link>
+                <Link
+                  to="/admin/essay-submissions"
+                  role="menuitem"
+                  onClick={close}
+                  className="block px-4 py-2 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-900"
+                >
+                  Essay submissions
+                </Link>
+              </>
             ) : null}
           </div>
 

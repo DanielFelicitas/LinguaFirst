@@ -69,7 +69,7 @@ export function AdminContent() {
   const [modType, setModType] = useState<ModuleType>("general");
 
   const [lessonType, setLessonType] = useState<"flipbook" | "simple">("flipbook");
-  const [quizType, setQuizType] = useState<"multiple_choice" | "true_false">("multiple_choice");
+  const [quizType, setQuizType] = useState<"multiple_choice" | "true_false" | "essay">("multiple_choice");
   const [gameType, setGameType] = useState<
     | "match_pairs"
     | "word_scramble"
@@ -96,6 +96,7 @@ export function AdminContent() {
   const [qOpts, setQOpts] = useState<string[][]>([["", "", "", ""]]);
   const [qCorrect, setQCorrect] = useState<number[]>([0]);
   const [qTfCorrect, setQTfCorrect] = useState<boolean[]>([true]);
+  const [qEssayAnswers, setQEssayAnswers] = useState<string[]>([""]);
 
   const [gTitle, setGTitle] = useState("");
   const [gDesc, setGDesc] = useState("");
@@ -221,9 +222,11 @@ export function AdminContent() {
   }, [refreshData]);
 
   useEffect(() => {
-    setQOpts((opts) =>
-      opts.map(() => (quizType === "true_false" ? ["True", "False"] : ["", "", "", ""]))
-    );
+    setQOpts((opts) => {
+      if (quizType === "true_false") return opts.map(() => ["True", "False"]);
+      if (quizType === "essay") return opts.map(() => []);
+      return opts.map(() => ["", "", "", ""]);
+    });
   }, [quizType]);
 
   useEffect(() => {
@@ -257,6 +260,7 @@ export function AdminContent() {
     setQOpts([["", "", "", ""]]);
     setQCorrect([0]);
     setQTfCorrect([true]);
+    setQEssayAnswers([""]);
   };
 
   const resetGameForm = () => {
@@ -359,20 +363,23 @@ export function AdminContent() {
       setEditingQuizId(id);
       setQTitle(quiz.title);
       setQModuleId(quiz.moduleId ? String(quiz.moduleId) : "");
-      const qt = quiz.quizType === "true_false" ? "true_false" : "multiple_choice";
+      const qt = quiz.quizType === "true_false" ? "true_false" : quiz.quizType === "essay" ? "essay" : "multiple_choice";
       setQuizType(qt);
       const prompts = quiz.questions.map((q) => q.prompt);
-      const opts = quiz.questions.map((q) =>
-        qt === "true_false"
-          ? ["True", "False"]
-          : [...q.options, "", "", "", ""].slice(0, 4)
-      );
-      const correct = quiz.questions.map((q) => q.correctIndex);
+      const opts = quiz.questions.map((q) => {
+        if (qt === "true_false") return ["True", "False"];
+        if (qt === "essay") return [];
+        const row = Array.isArray(q.options) ? q.options : [];
+        return [...row, "", "", "", ""].slice(0, 4);
+      });
+      const correct = quiz.questions.map((q) => Number(q.correctIndex) || 0);
       const tf = quiz.questions.map((q) => q.correctIndex === 0);
+      const essay = quiz.questions.map((q) => q.sampleAnswer || "");
       setQPrompts(prompts.length ? prompts : [""]);
       setQOpts(opts.length ? opts : [["", "", "", ""]]);
       setQCorrect(correct.length ? correct : [0]);
       setQTfCorrect(tf.length ? tf : [true]);
+      setQEssayAnswers(essay.length ? essay : [""]);
       setMsg(null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not load quiz");
@@ -605,12 +612,10 @@ export function AdminContent() {
 
   const addQuestion = () => {
     setQPrompts((p) => [...p, ""]);
-    setQOpts((o) => [
-      ...o,
-      quizType === "true_false" ? ["True", "False"] : ["", "", "", ""],
-    ]);
+    setQOpts((o) => [...o, quizType === "true_false" ? ["True", "False"] : quizType === "essay" ? [] : ["", "", "", ""]]);
     setQCorrect((c) => [...c, 0]);
     setQTfCorrect((t) => [...t, true]);
+    setQEssayAnswers((x) => [...x, ""]);
   };
 
   const buildLessonPayload = () => {
@@ -693,6 +698,12 @@ export function AdminContent() {
           prompt: prompt.trim(),
           options: ["True", "False"],
           correctIndex: qTfCorrect[i] ? 0 : 1,
+        };
+      }
+      if (quizType === "essay") {
+        return {
+          prompt: prompt.trim(),
+          sampleAnswer: (qEssayAnswers[i] || "").trim(),
         };
       }
       const opts = (qOpts[i] || []).map((o) => o.trim()).filter(Boolean);
@@ -1366,7 +1377,13 @@ export function AdminContent() {
                       key={q._id}
                       title={q.title}
                       subtitle={`${q.questions.length} question(s)`}
-                      badge={q.quizType === "true_false" ? "True / false" : "Multiple choice"}
+                      badge={
+                        q.quizType === "true_false"
+                          ? "True / false"
+                          : q.quizType === "essay"
+                            ? "Essay"
+                            : "Multiple choice"
+                      }
                       onEdit={() => void loadQuizForEdit(q._id)}
                       onDelete={() => void deleteQuiz(q._id, q.title)}
                     />
@@ -1412,6 +1429,14 @@ export function AdminContent() {
                       onChange={() => setQuizType("true_false")}
                     />
                     True / false
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      checked={quizType === "essay"}
+                      onChange={() => setQuizType("essay")}
+                    />
+                    Essay
                   </label>
                 </div>
               </div>
@@ -1466,6 +1491,21 @@ export function AdminContent() {
                         <option value="true">True</option>
                         <option value="false">False</option>
                       </select>
+                    </label>
+                  ) : quizType === "essay" ? (
+                    <label className="mt-2 block text-sm">
+                      <span className="text-slate-600">Reference answer (optional, for review)</span>
+                      <textarea
+                        value={qEssayAnswers[i] || ""}
+                        onChange={(e) => {
+                          const next = [...qEssayAnswers];
+                          next[i] = e.target.value;
+                          setQEssayAnswers(next);
+                        }}
+                        rows={3}
+                        placeholder="Sample answer"
+                        className="mt-1 w-full rounded border border-slate-200 px-2 py-1 text-sm"
+                      />
                     </label>
                   ) : (
                     <>

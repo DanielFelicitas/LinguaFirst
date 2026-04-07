@@ -7,12 +7,14 @@ export function SimpleLessonView({
   pageIndex,
   onPageChange,
   markDoneSlot,
+  onFinish,
 }: {
   lessonTitle: string;
   slides: string[];
   pageIndex: number;
   onPageChange: (i: number) => void;
   markDoneSlot: ReactNode;
+  onFinish?: () => void;
 }) {
   const total = slides.length;
   const safeIndex = Math.min(Math.max(0, pageIndex), Math.max(0, total - 1));
@@ -93,13 +95,7 @@ export function SimpleLessonView({
             ) : (
               <button
                 type="button"
-                onClick={() => {
-                  document.getElementById("mark-lesson-done-btn")?.focus();
-                  document.getElementById("mark-lesson-done-btn")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
-                }}
+                onClick={onFinish}
                 className="rounded-xl bg-gradient-to-r from-rose-400 via-amber-300 to-teal-400 px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-md hover:brightness-105"
               >
                 Finish

@@ -183,6 +183,16 @@ export function Lessons() {
     }
   };
 
+  const onFinishLesson = async () => {
+    if (!lessonId || !moduleId) return;
+    await onMarkDone();
+    const currentIndex = lessonsSorted.findIndex((l) => l._id === lessonId);
+    const nextLesson = currentIndex >= 0 ? lessonsSorted[currentIndex + 1] : null;
+    if (nextLesson?._id) {
+      navigate(`/lessons/module/${moduleId}/lesson/${nextLesson._id}`);
+    }
+  };
+
   const isSimpleLesson = lesson?.lessonType === "simple";
   const canMarkDone = isSimpleLesson
     ? simpleSlides.length <= 1 || pageIndex >= simpleSlides.length - 1
@@ -399,6 +409,7 @@ export function Lessons() {
                   slides={simpleSlides}
                   pageIndex={pageIndex}
                   onPageChange={setPageIndex}
+                  onFinish={() => void onFinishLesson()}
                   markDoneSlot={
                     <button
                       id="mark-lesson-done-btn"
@@ -428,6 +439,7 @@ export function Lessons() {
                   pages={pages}
                   pageIndex={pageIndex}
                   onPageChange={setPageIndex}
+                  onFinish={() => void onFinishLesson()}
                   markDoneSlot={
                     <button
                       id="mark-lesson-done-btn"

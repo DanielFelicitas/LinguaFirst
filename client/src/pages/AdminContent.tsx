@@ -104,7 +104,7 @@ export function AdminContent() {
   const [gPairCount, setGPairCount] = useState("6");
   const [gWordSearchCount, setGWordSearchCount] = useState("6");
   const [gTag, setGTag] = useState("");
-  const [gAnswerSide, setGAnswerSide] = useState<"bikol" | "english">("bikol");
+  const [gAnswerSide, setGAnswerSide] = useState<"bikol" | "filipino" | "english">("bikol");
   const [gScrambleMode, setGScrambleMode] = useState<"vocabulary" | "custom">("vocabulary");
   const [gScrambleLetters, setGScrambleLetters] = useState<string[]>([""]);
   const [gScrambleAnswers, setGScrambleAnswers] = useState<string[]>([""]);
@@ -124,6 +124,7 @@ export function AdminContent() {
   const [gPublished, setGPublished] = useState(true);
 
   const [vBikol, setVBikol] = useState("");
+  const [vFilipino, setVFilipino] = useState("");
   const [vEnglish, setVEnglish] = useState("");
   const [vExample, setVExample] = useState("");
   const [vTags, setVTags] = useState("");
@@ -303,6 +304,7 @@ export function AdminContent() {
   const resetVocabForm = () => {
     setEditingVocabId(null);
     setVBikol("");
+    setVFilipino("");
     setVEnglish("");
     setVExample("");
     setVTags("");
@@ -407,7 +409,13 @@ export function AdminContent() {
     setGPairCount(String(g.config?.pairCount ?? 6));
     setGWordSearchCount(String(g.config?.wordSearchCount ?? 6));
     setGTag(g.config?.vocabularyTag || "");
-    setGAnswerSide(g.config?.answerSide === "english" ? "english" : "bikol");
+    setGAnswerSide(
+      g.config?.answerSide === "english"
+        ? "english"
+        : g.config?.answerSide === "filipino"
+          ? "filipino"
+          : "bikol"
+    );
     const scrambleMode = g.config?.scrambleMode === "custom" ? "custom" : "vocabulary";
     setGScrambleMode(scrambleMode);
     const puzzles = Array.isArray(g.config?.scramblePuzzles) ? g.config.scramblePuzzles : [];
@@ -504,6 +512,7 @@ export function AdminContent() {
   const loadVocabForEdit = (w: VocabWord) => {
     setEditingVocabId(w._id);
     setVBikol(w.bikol || "");
+    setVFilipino(w.filipino || "");
     setVEnglish(w.english || "");
     setVExample(w.example || "");
     setVTags((w.tags || []).join(", "));
@@ -523,11 +532,14 @@ export function AdminContent() {
         .filter(Boolean);
       const body = {
         bikol: vBikol.trim(),
+        filipino: vFilipino.trim(),
         english: vEnglish.trim(),
         example: vExample.trim(),
         tags,
       };
-      if (!body.bikol || !body.english) throw new Error("Bikol and English are required");
+      if (!body.bikol || !body.filipino || !body.english) {
+        throw new Error("Bikol, Filipino and English are required");
+      }
       if (editingVocabId) {
         await api.admin.updateVocab(editingVocabId, body);
         setMsg("Vocabulary word updated.");
@@ -1761,10 +1773,11 @@ export function AdminContent() {
                       <span className="text-slate-600">Answer language</span>
                       <select
                         value={gAnswerSide}
-                        onChange={(e) => setGAnswerSide(e.target.value as "bikol" | "english")}
+                        onChange={(e) => setGAnswerSide(e.target.value as "bikol" | "filipino" | "english")}
                         className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
                       >
                         <option value="bikol">Unscramble Bikol</option>
+                        <option value="filipino">Unscramble Filipino</option>
                         <option value="english">Unscramble English</option>
                       </select>
                     </label>
@@ -2070,7 +2083,7 @@ export function AdminContent() {
                   pagedVocabList.map((w) => (
                     <ListCard
                       key={w._id}
-                      title={`${w.english} — ${w.bikol}`}
+                      title={`${w.english} — ${w.filipino} — ${w.bikol}`}
                       subtitle={w.tags?.length ? `tags: ${w.tags.join(", ")}` : undefined}
                       badge={w.example ? "Has example" : undefined}
                       onEdit={() => loadVocabForEdit(w)}
@@ -2109,6 +2122,15 @@ export function AdminContent() {
                   <input
                     value={vEnglish}
                     onChange={(e) => setVEnglish(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                    required
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="text-slate-600">Filipino</span>
+                  <input
+                    value={vFilipino}
+                    onChange={(e) => setVFilipino(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
                     required
                   />

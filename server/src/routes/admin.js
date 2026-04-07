@@ -321,10 +321,13 @@ router.patch("/essay-submissions/:id/grade", async (req, res, next) => {
 
 router.post("/vocabulary", async (req, res, next) => {
   try {
-    const { bikol, english, example, tags } = req.body || {};
-    if (!bikol || !english) return res.status(400).json({ message: "bikol and english required" });
+    const { bikol, filipino, english, example, tags } = req.body || {};
+    if (!bikol || !filipino || !english) {
+      return res.status(400).json({ message: "bikol, filipino and english required" });
+    }
     const word = await VocabularyWord.create({
       bikol,
+      filipino,
       english,
       example: example || "",
       tags: Array.isArray(tags) ? tags : [],
@@ -337,11 +340,12 @@ router.post("/vocabulary", async (req, res, next) => {
 
 router.patch("/vocabulary/:id", async (req, res, next) => {
   try {
-    const { bikol, english, example, tags } = req.body || {};
+    const { bikol, filipino, english, example, tags } = req.body || {};
     const word = await VocabularyWord.findByIdAndUpdate(
       req.params.id,
       {
         ...(bikol !== undefined && { bikol }),
+        ...(filipino !== undefined && { filipino }),
         ...(english !== undefined && { english }),
         ...(example !== undefined && { example }),
         ...(tags !== undefined && { tags }),

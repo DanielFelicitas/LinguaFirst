@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const vocabularyWordSchema = new mongoose.Schema(
   {
     bikol: { type: String, required: true },
+    filipino: { type: String, required: true },
     english: { type: String, required: true },
     example: { type: String, default: "" },
     tags: [{ type: String }],

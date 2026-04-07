@@ -89,19 +89,28 @@ export function WordSearchGame({
   description,
   words,
   wordCount,
+  initialAnswerSide = "english",
   allowTyping = true,
 }: {
   title?: string;
   description?: string;
   words: VocabWord[];
   wordCount: number;
+  initialAnswerSide?: "bikol" | "filipino" | "english";
   allowTyping?: boolean;
 }) {
+  const [answerSide, setAnswerSide] = useState<"bikol" | "filipino" | "english">(initialAnswerSide);
+
+  useEffect(() => {
+    setAnswerSide(initialAnswerSide);
+  }, [initialAnswerSide]);
+
   const sourceWords = useMemo(() => {
     const unique = new Set<string>();
     const cleaned: string[] = [];
     for (const w of words) {
-      const nw = normalizeWord(w.english);
+      const raw = answerSide === "bikol" ? w.bikol : answerSide === "filipino" ? w.filipino : w.english;
+      const nw = normalizeWord(raw);
       if (nw.length < 3 || nw.length > GRID_SIZE) continue;
       if (unique.has(nw)) continue;
       unique.add(nw);
@@ -109,7 +118,7 @@ export function WordSearchGame({
       if (cleaned.length >= wordCount) break;
     }
     return cleaned;
-  }, [words, wordCount]);
+  }, [words, wordCount, answerSide]);
 
   const [seed, setSeed] = useState(0);
   const { grid, placed } = useMemo(() => buildGrid(sourceWords), [sourceWords, seed]);
@@ -222,6 +231,18 @@ export function WordSearchGame({
 
       <div className="grid gap-0 md:grid-cols-[190px_1fr]">
         <aside className="border-r border-slate-300 bg-slate-200 p-3">
+          <label className="mb-3 block text-xs font-semibold tracking-wider text-slate-600">
+            ANSWER LANGUAGE
+            <select
+              value={answerSide}
+              onChange={(e) => setAnswerSide(e.target.value as "bikol" | "filipino" | "english")}
+              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700"
+            >
+              <option value="english">English</option>
+              <option value="filipino">Filipino</option>
+              <option value="bikol">Bikol</option>
+            </select>
+          </label>
           <p className="mb-2 text-xs font-semibold tracking-wider text-slate-600">WORDS</p>
           <ul className="space-y-0.5 text-[13px] leading-5">
             {placed.map((w) => (

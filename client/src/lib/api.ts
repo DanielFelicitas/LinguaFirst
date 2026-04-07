@@ -192,11 +192,11 @@ export const api = {
       request<{ ok: boolean }>(`/api/admin/games/${encodeURIComponent(id)}`, { method: "DELETE" }),
     deleteAllGames: () => request<{ ok: boolean }>("/api/admin/games", { method: "DELETE" }),
 
-    createVocab: (body: { bikol: string; english: string; example?: string; tags?: string[] }) =>
+    createVocab: (body: { bikol: string; filipino: string; english: string; example?: string; tags?: string[] }) =>
       request<{ word: VocabWord }>("/api/admin/vocabulary", { method: "POST", body: JSON.stringify(body) }),
     updateVocab: (
       id: string,
-      body: Partial<{ bikol: string; english: string; example: string; tags: string[] }>
+      body: Partial<{ bikol: string; filipino: string; english: string; example: string; tags: string[] }>
     ) =>
       request<{ word: VocabWord }>(`/api/admin/vocabulary/${encodeURIComponent(id)}`, {
         method: "PATCH",
@@ -306,7 +306,7 @@ export type GameOut = {
   config: {
     pairCount?: number;
     vocabularyTag?: string;
-    answerSide?: "bikol" | "english";
+    answerSide?: "bikol" | "filipino" | "english";
     questions?: { prompt: string; options: string[]; correctIndex: number; explanation?: string }[];
     scrambleMode?: "vocabulary" | "custom";
     scramblePuzzles?: { letters: string; answer: string; hint?: string }[];
@@ -319,6 +319,7 @@ export type GameOut = {
 export type VocabWord = {
   _id: string;
   bikol: string;
+  filipino: string;
   english: string;
   example: string;
   tags: string[];

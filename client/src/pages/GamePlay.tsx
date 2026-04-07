@@ -147,7 +147,13 @@ export function GamePlay() {
             title={game?.title || "Scramble words"}
             description={game?.description || "Unscramble the letters."}
             words={scrambleWords}
-            answerSide={game?.config?.answerSide === "english" ? "english" : "bikol"}
+            answerSide={
+              game?.config?.answerSide === "english"
+                ? "english"
+                : game?.config?.answerSide === "filipino"
+                  ? "filipino"
+                  : "bikol"
+            }
             scrambleMode={(game?.config as any)?.scrambleMode}
             customPuzzles={(game?.config as any)?.scramblePuzzles}
             showHint
@@ -178,6 +184,13 @@ export function GamePlay() {
             description={game?.description || "Find hidden words in the grid."}
             words={words}
             wordCount={wordSearchCount}
+            initialAnswerSide={
+              game?.config?.answerSide === "bikol"
+                ? "bikol"
+                : game?.config?.answerSide === "filipino"
+                  ? "filipino"
+                  : "english"
+            }
             allowTyping
           />
         ) : null}

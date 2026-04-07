@@ -90,7 +90,7 @@ export function Layout() {
               Lingua<span className="text-cyan-600">FiRST</span>
             </span>
             <span className="hidden text-sm font-semibold text-slate-500 lg:inline">
-              Bikol ↔ English
+              L1 ↔ L2
             </span>
           </Link>
 
@@ -284,7 +284,7 @@ export function Layout() {
 
       <footer className="relative z-0 mt-auto shrink-0 border-t border-slate-200/80 bg-white/85 py-6 text-center text-sm text-slate-500 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 sm:px-6">
-          <p>© {new Date().getFullYear()} LinguaFiRST · Learn Bikol and English together.</p>
+          <p>© {new Date().getFullYear()} LinguaFiRST · Learn L1 and L2 Together.</p>
         </div>
       </footer>
     </div>

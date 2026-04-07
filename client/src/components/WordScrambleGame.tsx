@@ -25,7 +25,7 @@ export function WordScrambleGame({
   title?: string;
   description?: string;
   words: VocabWord[];
-  answerSide: "bikol" | "english";
+  answerSide: "bikol" | "filipino" | "english";
   scrambleMode?: "vocabulary" | "custom";
   customPuzzles?: { letters: string; answer: string; hint?: string }[];
   showHint?: boolean;
@@ -54,7 +54,7 @@ export function WordScrambleGame({
       setScrambled(String(puzzle.letters || "").trim().toUpperCase());
     } else {
       if (!word) return;
-      const ans = answerSide === "bikol" ? word.bikol : word.english;
+      const ans = answerSide === "bikol" ? word.bikol : answerSide === "filipino" ? word.filipino : word.english;
       setScrambled(scramble(ans.trim()));
     }
     setGuess("");
@@ -70,7 +70,9 @@ export function WordScrambleGame({
   const check = () => {
     const ans = useCustom
       ? String(puzzle?.answer || "").trim().toLowerCase()
-      : (answerSide === "bikol" ? word?.bikol : word?.english)?.trim().toLowerCase();
+      : (answerSide === "bikol" ? word?.bikol : answerSide === "filipino" ? word?.filipino : word?.english)
+          ?.trim()
+          .toLowerCase();
     if (!ans) return;
     const g = guess.trim().toLowerCase();
     if (g === ans) {
@@ -102,7 +104,9 @@ export function WordScrambleGame({
   const hint = useMemo(() => {
     if (useCustom) return puzzle?.hint ? `Hint: ${puzzle.hint}` : "";
     if (!word) return "";
-    return answerSide === "bikol" ? `English: ${word.english}` : `Bikol: ${word.bikol}`;
+    if (answerSide === "bikol") return `English: ${word.english} · Filipino: ${word.filipino}`;
+    if (answerSide === "filipino") return `English: ${word.english} · Bikol: ${word.bikol}`;
+    return `Filipino: ${word.filipino} · Bikol: ${word.bikol}`;
   }, [word, answerSide, useCustom, puzzle]);
 
   if (useCustom && (!customPuzzles || customPuzzles.length === 0)) {

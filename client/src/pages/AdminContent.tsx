@@ -1467,14 +1467,15 @@ export function AdminContent() {
               {qPrompts.map((prompt, i) => (
                 <div key={i} className="rounded-lg border border-slate-100 p-3">
                   <p className="text-xs font-medium text-slate-500">Question {i + 1}</p>
-                  <input
+                  <textarea
                     value={prompt}
                     onChange={(e) => {
                       const next = [...qPrompts];
                       next[i] = e.target.value;
                       setQPrompts(next);
                     }}
-                    placeholder="Prompt"
+                    rows={4}
+                    placeholder="Question prompt (supports multiple lines)"
                     className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-sm"
                   />
                   {quizType === "true_false" ? (

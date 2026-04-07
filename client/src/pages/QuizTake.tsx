@@ -228,7 +228,7 @@ export function QuizTake() {
                       {ok ? "✓" : "✗"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-900">{q.prompt}</p>
+                      <p className="whitespace-pre-wrap font-medium text-slate-900">{q.prompt}</p>
                       {quiz.quizType === "essay" ? (
                         <>
                           <p className="mt-1 whitespace-pre-wrap text-slate-700">
@@ -329,7 +329,7 @@ export function QuizTake() {
         <div className="space-y-4">
           {quiz.questions.map((qq, i) => (
             <section key={i} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="whitespace-pre-wrap text-sm font-semibold text-slate-900">
                 {i + 1}. {qq.prompt}
               </p>
               <textarea
@@ -399,7 +399,7 @@ export function QuizTake() {
         <p className="mt-1 text-right text-xs text-slate-400">{stepPct}% through the quiz</p>
       </div>
 
-      <h2 className="text-xl font-medium leading-snug text-slate-800 sm:text-2xl">{q.prompt}</h2>
+      <h2 className="whitespace-pre-wrap text-xl font-medium leading-snug text-slate-800 sm:text-2xl">{q.prompt}</h2>
       <ul className="space-y-2">
         {(q.options || []).map((opt, oi) => (
           <li key={oi}>

@@ -4,6 +4,7 @@ const Module = require("../models/Module");
 const Lesson = require("../models/Lesson");
 const Quiz = require("../models/Quiz");
 const EssaySubmission = require("../models/EssaySubmission");
+const QuizSubmission = require("../models/QuizSubmission");
 const VocabularyWord = require("../models/VocabularyWord");
 const Game = require("../models/Game");
 const { auth, requireAdmin } = require("../middleware/auth");
@@ -310,11 +311,119 @@ router.patch("/essay-submissions/:id/grade", async (req, res, next) => {
     });
 
     await submission.save();
+    const totalScore = submission.responses.reduce((acc, r) => acc + (typeof r.score === "number" ? r.score : 0), 0);
+    const totalMax = submission.responses.reduce((acc, r) => acc + (typeof r.maxScore === "number" ? r.maxScore : 0), 0);
+    const percent = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+    await QuizSubmission.findOneAndUpdate(
+      {
+        quizId: submission.quizId,
+        userId: submission.userId,
+        submissionType: "essay",
+        createdAt: { $lte: submission.createdAt },
+      },
+      {
+        $set: {
+          score: totalScore,
+          maxScore: totalMax || submission.responses.length,
+          percent,
+        },
+      },
+      { sort: { createdAt: -1 } }
+    );
     res.json({ submission: submission.toObject() });
   } catch (e) {
     if (e instanceof Error && (e.message.startsWith("Invalid") || e.message.includes("question"))) {
       return res.status(400).json({ message: e.message });
     }
+    next(e);
+  }
+});
+
+router.get("/quiz-submissions", async (_req, res, next) => {
+  try {
+    const submissions = await QuizSubmission.find()
+      .sort({ createdAt: -1 })
+      .populate("quizId", "title quizType")
+      .populate("userId", "displayName email")
+      .lean();
+
+    const groupedMap = new Map();
+    for (const sub of submissions) {
+      const quizObj = sub.quizId && typeof sub.quizId === "object" ? sub.quizId : null;
+      const quizId = quizObj?._id ? String(quizObj._id) : "unknown";
+      const quizTitle = quizObj?.title || "Unknown quiz";
+      const quizType = quizObj?.quizType || "multiple_choice";
+      const key = quizId;
+      const current = groupedMap.get(key) || {
+        quizId,
+        quizTitle,
+        quizType,
+        attempts: 0,
+        totalScore: 0,
+        totalMaxScore: 0,
+        participantsSet: new Set(),
+      };
+      current.attempts += 1;
+      current.totalScore += Number(sub.score || 0);
+      current.totalMaxScore += Number(sub.maxScore || 0);
+      current.participantsSet.add(String(sub.userId?._id || sub.userId || ""));
+      groupedMap.set(key, current);
+    }
+
+    const quizzes = [...groupedMap.values()].map((g) => ({
+      quizId: g.quizId,
+      quizTitle: g.quizTitle,
+      quizType: g.quizType,
+      attempts: g.attempts,
+      participants: g.participantsSet.size,
+      averagePercent: g.totalMaxScore > 0 ? Math.round((g.totalScore / g.totalMaxScore) * 100) : 0,
+    }));
+
+    res.json({ quizzes });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/quiz-submissions/:quizId", async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.quizId).select("title quizType").lean();
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    const submissions = await QuizSubmission.find({ quizId: req.params.quizId })
+      .sort({ createdAt: -1 })
+      .populate("userId", "displayName email")
+      .lean();
+
+    res.json({
+      quiz: {
+        _id: String(quiz._id),
+        title: quiz.title,
+        quizType: quiz.quizType,
+      },
+      submissions,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/quiz-submissions/:id", async (req, res, next) => {
+  try {
+    const r = await QuizSubmission.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ message: "Submission not found" });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/quiz-submissions", async (req, res, next) => {
+  try {
+    const filter = req.query.quizId ? { quizId: req.query.quizId } : {};
+    const r = await QuizSubmission.deleteMany(filter);
+    res.json({ ok: true, deleted: r.deletedCount });
+  } catch (e) {
     next(e);
   }
 });

@@ -84,6 +84,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ answers }),
     }),
+  submitQuizScore: (quizId: string, score: number, maxScore: number) =>
+    request<{ submission: QuizSubmissionOut }>(`/api/quizzes/${encodeURIComponent(quizId)}/submissions`, {
+      method: "POST",
+      body: JSON.stringify({ score, maxScore }),
+    }),
   myEssaySubmission: (quizId: string) =>
     request<{ submission: EssaySubmissionOut }>(`/api/quizzes/${encodeURIComponent(quizId)}/essay-submissions/me`),
 
@@ -145,6 +150,19 @@ export const api = {
         quizId
           ? `/api/admin/essay-submissions?quizId=${encodeURIComponent(quizId)}`
           : "/api/admin/essay-submissions"
+      ),
+    listQuizSubmissionSummaries: () =>
+      request<{ quizzes: QuizSubmissionSummaryOut[] }>("/api/admin/quiz-submissions"),
+    listQuizSubmissionsByQuiz: (quizId: string) =>
+      request<{ quiz: { _id: string; title: string; quizType?: QuizOut["quizType"] }; submissions: QuizSubmissionOut[] }>(
+        `/api/admin/quiz-submissions/${encodeURIComponent(quizId)}`
+      ),
+    deleteQuizSubmission: (id: string) =>
+      request<{ ok: boolean }>(`/api/admin/quiz-submissions/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    clearQuizSubmissions: (quizId?: string) =>
+      request<{ ok: boolean; deleted: number }>(
+        quizId ? `/api/admin/quiz-submissions?quizId=${encodeURIComponent(quizId)}` : "/api/admin/quiz-submissions",
+        { method: "DELETE" }
       ),
     deleteEssaySubmission: (id: string) =>
       request<{ ok: boolean }>(`/api/admin/essay-submissions/${encodeURIComponent(id)}`, { method: "DELETE" }),
@@ -365,4 +383,36 @@ export type EssaySubmissionOut = {
     feedback?: string;
   }[];
   createdAt: string;
+};
+
+export type QuizSubmissionOut = {
+  _id: string;
+  quizId:
+    | string
+    | {
+        _id: string;
+        title?: string;
+        quizType?: QuizOut["quizType"];
+      };
+  userId:
+    | string
+    | {
+        _id: string;
+        displayName?: string;
+        email?: string;
+      };
+  score: number;
+  maxScore: number;
+  percent: number;
+  submissionType?: "objective" | "essay";
+  createdAt: string;
+};
+
+export type QuizSubmissionSummaryOut = {
+  quizId: string;
+  quizTitle: string;
+  quizType?: QuizOut["quizType"];
+  attempts: number;
+  participants: number;
+  averagePercent: number;
 };

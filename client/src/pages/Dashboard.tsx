@@ -148,6 +148,12 @@ export function Dashboard() {
             >
               View essay submissions
             </Link>
+            <Link
+              to="/admin/essay-submissions/quiz-scores"
+              className="inline-block rounded-xl border border-teal-300 bg-white px-5 py-2.5 text-sm font-semibold text-teal-900 hover:bg-teal-50"
+            >
+              View quiz scores
+            </Link>
           </div>
         </section>
       ) : null}

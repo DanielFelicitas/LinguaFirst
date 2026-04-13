@@ -3,6 +3,7 @@ const Note = require("../models/Note");
 const Progress = require("../models/Progress");
 const Quiz = require("../models/Quiz");
 const EssaySubmission = require("../models/EssaySubmission");
+const QuizSubmission = require("../models/QuizSubmission");
 const { auth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -111,11 +112,54 @@ router.post("/quizzes/:quizId/essay-submissions", auth(true), async (req, res, n
       userId: req.user._id,
       responses,
     });
+    const score = 0;
+    const maxScore = quiz.questions.length;
+    const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+    await QuizSubmission.create({
+      quizId: quiz._id,
+      userId: req.user._id,
+      score,
+      maxScore,
+      percent,
+      submissionType: "essay",
+    });
     res.status(201).json({ submission });
   } catch (e) {
     if (e instanceof Error && e.message.includes("needs an answer")) {
       return res.status(400).json({ message: e.message });
     }
+    next(e);
+  }
+});
+
+router.post("/quizzes/:quizId/submissions", auth(true), async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.quizId).lean();
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    if (quiz.quizType === "essay") {
+      return res.status(400).json({ message: "Use essay submission endpoint for essay quizzes" });
+    }
+
+    const score = Number(req.body?.score);
+    const maxScore = Number(req.body?.maxScore);
+    if (!Number.isFinite(score) || !Number.isFinite(maxScore)) {
+      return res.status(400).json({ message: "score and maxScore are required numbers" });
+    }
+    if (maxScore < 0 || score < 0 || score > maxScore) {
+      return res.status(400).json({ message: "Invalid score values" });
+    }
+    const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+    const submission = await QuizSubmission.create({
+      quizId: quiz._id,
+      userId: req.user._id,
+      score,
+      maxScore,
+      percent,
+      submissionType: "objective",
+    });
+    res.status(201).json({ submission });
+  } catch (e) {
     next(e);
   }
 });

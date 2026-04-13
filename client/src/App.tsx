@@ -14,6 +14,8 @@ import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminContent } from "./pages/AdminContent";
 import { AdminEssaySubmissions } from "./pages/AdminEssaySubmissions";
+import { AdminQuizSubmissions } from "./pages/AdminQuizSubmissions";
+import { AdminQuizParticipants } from "./pages/AdminQuizParticipants";
 
 export default function App() {
   return (
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="admin/content" element={<AdminContent />} />
         <Route path="admin/essay-submissions" element={<AdminEssaySubmissions />} />
+        <Route path="admin/essay-submissions/quiz-scores" element={<AdminQuizSubmissions />} />
+        <Route path="admin/essay-submissions/quiz-scores/:id" element={<AdminQuizParticipants />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

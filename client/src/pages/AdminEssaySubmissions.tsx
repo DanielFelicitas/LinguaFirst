@@ -134,6 +134,14 @@ export function AdminEssaySubmissions() {
         <p className="mt-2 text-sm text-slate-600">
           Review all student essay answers with their name and email.
         </p>
+        <div className="mt-4">
+          <Link
+            to="/admin/essay-submissions/quiz-scores"
+            className="inline-block rounded-xl border border-teal-300 bg-white px-4 py-2 text-sm font-semibold text-teal-900 hover:bg-teal-50"
+          >
+            Open quiz score submissions
+          </Link>
+        </div>
       </div>
 
       <div className="glass rounded-2xl p-5 sm:p-6">

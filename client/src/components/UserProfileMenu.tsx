@@ -101,6 +101,14 @@ export function UserProfileMenu({ user, onLogout }: Props) {
                   Manage content
                 </Link>
                 <Link
+                  to="/admin/essay-submissions/quiz-scores"
+                  role="menuitem"
+                  onClick={close}
+                  className="block px-4 py-2 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-900"
+                >
+                  Quiz score submissions
+                </Link>
+                <Link
                   to="/admin/essay-submissions"
                   role="menuitem"
                   onClick={close}

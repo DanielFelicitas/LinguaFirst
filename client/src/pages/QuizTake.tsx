@@ -103,6 +103,7 @@ export function QuizTake() {
     setDone(true);
     if (!user) return;
     try {
+      await api.submitQuizScore(quiz._id, correct, total);
       await api.analytics({
         name: "quiz_complete",
         path: `/quiz/${quiz._id}`,

@@ -12,7 +12,8 @@ export function Home() {
           style={{ fontFamily: "Fraunces, Georgia, serif" }}
         >
           <span className="text-green-700"><b>LinguaFiRST</b></span>
-          <span className="mt-2 block text-slate-700">Learn at your pace. Speak with pride.</span>
+          <span className="mt-2 block text-slate-700">Learn at your pace</span>
+          <span className="mt-2 block text-slate-700">Speak with pride</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
           Structured lessons, quick quizzes, vocabulary, and light games — built for learners who
